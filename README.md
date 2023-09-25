@@ -7,9 +7,9 @@ Esto mediante un ambiente de verificación conformado de lo siguiente:
 
 1. DUT: Como se puede observar en [Library.sv](Libraries/Library.sv)
 2. Ambiente: Compuesto por varios elementos, estos siendo:
-    -Test
-    -Agente
-    -Driver
-    -Monitor
-    -Scoreboard
-    -Checker
+-Test
+-Agente
+-Driver
+-Monitor
+-Scoreboard
+-Checker
