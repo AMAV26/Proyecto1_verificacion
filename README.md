@@ -16,13 +16,12 @@ Esto mediante un ambiente de verificación conformado de lo siguiente:
 
         -Test 
         
-        -Agente <br>
+        -Agente 
         
+        -Driver 
         
-        -Driver <br>
+        -Monitor 
         
-        -Monitor <br>
+        -Scoreboard 
         
-        -Scoreboard <br>
-        
-        -Checker <br>
+        -Checker 
