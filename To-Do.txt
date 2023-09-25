@@ -1,0 +1,8 @@
+Checker (big task):Juntos
+Scoreboard:2 
+Agente: 2
+Ambiente: Juntos
+Test(big task):Juntos
+Driver:1
+Monitor:1
+
