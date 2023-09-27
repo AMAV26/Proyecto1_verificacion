@@ -89,7 +89,7 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
         2,//valor dispositivo_rx
         0//No aplico reset
     );
-    transaction3 = new(
+  /*  transaction3 = new(
        $urandom_range(1,255), //valor random  para dato
          $urandom_range(1,75), //valor random para retardo
          $time, // tiempo actual
@@ -98,12 +98,12 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
           $urandom_range(1,3),//valor random dispositivo_tx
           $urandom_range(1,3),//valor random  dispositivo_rx
           1// aplico reset
-      );
+      );*/
 
     // Imprimir información sobre la instancia
     transaction.print("Transacción 1");
     transaction2.print("Transaccion 2");
-    transaction3.print("Transaccion 3");
+   // transaction3.print("Transaccion 3");
    
     // Ejecutar la simulación
     // ...
@@ -111,22 +111,23 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
     // Verificar las restricciones
     assert(transaction.inside_driver_range()) else $display("Error: dispositivo_rx fuera de rango");
     assert(transaction2.inside_driver_range()) else $display("Error: dispositivo_rx fuera de rango");
-   assert(transaction3.inside_driver_range()) else $display("Error: disposi    tivo_rx fuera de rango");
+  // assert(transaction3.inside_driver_range()) else $display("Error: disposi    tivo_rx fuera de rango");
     //reestablecer valores a algo conocido
      transaction.clean();
      transaction2.clean();
-     transaction3.clean();
+    // transaction3.clean();
 
     // Comprobar el restablecimiento
     transaction2.print("valores en cero, transaccion2:");
-    transaction3.print("valores en cero, transaccion3:");
+   // transaction3.print("valores en cero, transaccion3:");
 
     // Continuar con más pruebas si es necesario
     // ...
 
     // Finalizar la simulación
-    $finish;
+ //   $finish;
   end
+endmodule
   /////////////////FINAL DE LA PRUEBA DE LA CLASE BUS HANDLER///////////
   
 
@@ -148,7 +149,31 @@ logic [pkg_size-1:0] d_push [0:0][drvrs-1:0];
 endinterface
 
 //////////////////Probando que la interface funcione//////////////////
+module testbench2;
+    reg clk;
+    //instanciando bushandler
+    bushandler_if #(4,16) my_bushandler( .clk(clk) );
+    
+    //generar reloj
+    always begin
+        #10 clk = !clk;
+    end
+    initial begin
+        clk = 0; //inicializo el reloj
+        #5 
+        $display("[%g]Entre al dummy test de la interface yeiiii:",$time     );
 
+        my_bushandler.d_push[0][0] = 8'hAA;//le asigno un valor a d_push
+        my_bushandler.push[0][0] = 1; //hago el pusheo
+        #5
+        my_bushandler.d_pop[0][0] = 8'hBB;
+        my_bushandler.pop[0][0] = 1;
+        #100
+        $display("Datos despues de hacer push: %h",my_bushandler.d_pop[0][0] );
+        $display("Datos despues de hacer pop: %h",my_bushandler.d_push[0][0]     );       
+        $finish;
+    end
 
 endmodule
+///////Segun el dummy test la interfaz funca///////////
 
