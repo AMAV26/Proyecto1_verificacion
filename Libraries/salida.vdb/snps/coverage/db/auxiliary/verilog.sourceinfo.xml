@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE cov SYSTEM "ucdb_srcinfo.dtd">
-  <srcinfo name="/mnt/vol_NFS_rh003/Est_Verif_II2023/AlexAguero/Proyecto1/Proyecto1_verificacion/Libraries"  >
-    <ucapi_version  major_ver="13"  minor_ver="1"  patch_str="R-2020.12-SP2"  />
-      <fileinfo name="transacciones_interface.sv"  id="0"  timestamp="1695798639"  />
-    </srcinfo>
