@@ -66,32 +66,44 @@ module testbench;
 
   // Instancia de la clase trans_bushandler
   trans_bushandler#(pkg_size, drvrs, broadcast) transaction;
-
+trans_bushandler#(pkg_size, drvrs, broadcast) transaction2;      
   initial begin
     // Inicializar la semilla del generador de números aleatorios
-    $randomize;
-    
+ 
+   
+  
+     
     // Crear instancias adicionales si es necesario para realizar más pruebas
     // trans_bushandler#(pkg_size, drvrs, broadcast) transaction2;
 
     // Asignar valores aleatorios a la instancia
     transaction = new;
-    // transaction2 = new;
+    transaction2 = new(
+        30, //valor para dato
+        5, //valor para retardo
+        $time, // tiepo actual
+        push,//tipo diferente de transacciones
+        10, //valor maximo retardo
+        4,//valor dispositivo_tx
+        4,//valor dispositivo_rx
+        0//No aplico reset
+    );
 
     // Imprimir información sobre la instancia
     transaction.print("Transacción 1");
-    // transaction2.print("Transacción 2");
+    transaction2.print("Transaccion 2");
 
+   
     // Ejecutar la simulación
     // ...
 
     // Verificar las restricciones
     assert(transaction.inside_driver_range()) else $display("Error: dispositivo_rx fuera de rango");
-    // assert(transaction2.inside_driver_range()) else $display("Error: dispositivo_rx fuera de rango");
+    assert(transaction2.inside_driver_range()) else $display("Error: dispositivo_rx fuera de rango");
 
     // Comprobar el restablecimiento
     transaction.clean();
-    // transaction2.clean();
+    transaction2.clean();
 
     // Continuar con más pruebas si es necesario
     // ...
