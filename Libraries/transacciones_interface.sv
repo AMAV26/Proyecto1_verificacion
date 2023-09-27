@@ -14,7 +14,13 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
   	rand bit [7:0] dispositivo_rx; // fifo out (QEUE)
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
 
-  	constraint const_dispositivo_rx { dispositivo_rx inside{[drvrs-1:0]}; }; //esta restricción const_dispositivo_rx  asegura que la variable dispositivo_rx debe estar dentro del rango definido, en resumen solo me asegura de que el ID que randomice, vaya de cero a drvrs-1 y que si el valor no esté en ese rango tire un error
+	function bit inside_driver_range();
+    		if (dispositivo_rx >= 0 && dispositivo_rx < drvrs)
+      			return 1;
+    		else
+      			return 0;
+  	endfunction
+	//esta restricción const_dispositivo_rx  asegura que la variable dispositivo_rx debe estar dentro del rango definido, en resumen solo me asegura de que el ID que randomice, vaya de cero a drvrs-1 y que si el valor no esté en ese rango tire un error
   	constraint const_retardo {retardo < max_retardo; retardo>0;} // esta restricción acota el retardo de cada transacción entre 0 y un retardo máximo definido
   
   //////Creando el constructor para inicializar los miembros de la clase //////
