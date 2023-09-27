@@ -1,0 +1,68 @@
+@verdi rc file Version 1.0
+[General]
+saveDB = TRUE
+relativePath = FALSE
+saveSingleView = FALSE
+saveNWaveWinId = 
+VerdiVersion = Verdi_R-2020.12-SP2
+[KeyNote]
+Line1 = Automatic Backup 0
+Line2 = Save Open Database Information: Yes
+Line3 = Path Option: Absolute Paths
+Line4 = Windows Option: All Windows
+[OneSearch]
+isExisted = TRUE
+[TestBench]
+ConstrViewShow = 0
+InherViewShow = 0
+FSDBMsgShow = 0
+AnnotationShow = 0
+Console = TRUE
+powerDumped = 0
+[fusa]
+fdb_server = 
+fdb_proj = 
+fdb_campaign = 
+fdb_tool = 
+[hb]
+postSimFile = /mnt/vol_NFS_rh003/Est_Verif_II2023/AlexAguero/Proyecto1/Proyecto1_verificacion/Libraries/inter.fsdb
+syncTime = 0
+viewport = 0 26 1024 704 0 0 210 1022
+activeNode = "testbench"
+activeScope = "testbench"
+activeFile = "transacciones_interface.sv"
+interactiveMode = False
+viewType = Source
+simulatorMode = False
+sourceBeginLine = 103
+baMode = False
+srcLineNum = True
+AutoWrap = True
+IdentifyFalseLogic = False
+syncSignal = False
+traceMode = Hierarchical
+showTraceInSchema = True
+paMode = False
+funcMode = False
+powerAwareAnnot = True
+safetyAwareAnnot = True
+amsAnnot = True
+DnDtraceCrossHierOnly = True
+leadingZero = False
+signalPane = False
+SourceVerticalScrollLines = 5
+Scope1 = "testbench"
+rangeSelection = 112 112 1 4 1 1
+sdfCheckUndef = FALSE
+simFlow = FALSE
+[hb.design]
+importCmd = "-simflow" "-dbdir" "./salida.daidir" 
+invokeDir = /mnt/vol_NFS_rh003/Est_Verif_II2023/AlexAguero/Proyecto1/Proyecto1_verificacion/Libraries
+[hb.sourceTab.1]
+scope = testbench
+File = /mnt/vol_NFS_rh003/Est_Verif_II2023/AlexAguero/Proyecto1/Proyecto1_verificacion/Libraries/transacciones_interface.sv
+Line = 104
+[nMemoryManager]
+WaveformFile = /mnt/vol_NFS_rh003/Est_Verif_II2023/AlexAguero/Proyecto1/Proyecto1_verificacion/Libraries/inter.fsdb
+UserActionNum = 0
+nMemWindowNum = 0

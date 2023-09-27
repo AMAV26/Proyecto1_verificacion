@@ -1,0 +1,44 @@
+Command: vcs -Mupdate transacciones_interface.sv -o salida -full64 -sverilog -kdb \
+-lca -debug_acc+all -debug_region+cell+encrypt -l log_test+lint=TFIPC-L -cm line+tgl+cond+fsm+branch+assert \
+
+                         Chronologic VCS (TM)
+       Version R-2020.12-SP2_Full64 -- Wed Sep 27 01:49:42 2023
+
+                    Copyright (c) 1991 - 2021 Synopsys, Inc.
+   This software and the associated documentation are proprietary to Synopsys,
+ Inc. This software may only be used in accordance with the terms and conditions
+ of a written license agreement with Synopsys, Inc. All other use, reproduction,
+            or distribution of this software is strictly prohibited.
+
+
+Warning-[LCA_FEATURES_ENABLED] Usage warning
+  LCA features enabled by '-lca' argument on the command line.  For more 
+  information regarding list of LCA features please refer to Chapter "LCA 
+  features" in the VCS Release Notes
+
+Parsing design file 'transacciones_interface.sv'
+Top Level Modules:
+       testbench
+No TimeScale specified
+VCS Coverage Metrics Release R-2020.12-SP2_Full64 Copyright (c) 1991-2020 by Synopsys Inc.
+Starting vcs inline pass...
+2 modules and 0 UDP read.
+	However, due to incremental compilation, no re-compilation is necessary.
+rm -f _cuarc*.so _csrc*.so pre_vcsobj_*.so share_vcsobj_*.so
+ld -shared  -Bsymbolic --no-relax  -o .//../salida.daidir//_cuarc0.so objs/amcQw_d.o \
+
+rm -f _cuarc0.so
+if [ -x ../salida ]; then chmod a-x ../salida; fi
+g++  -o ../salida      -rdynamic  -Wl,-rpath='$ORIGIN'/salida.daidir -Wl,-rpath=./salida.daidir \
+-Wl,-rpath=/mnt/vol_NFS_rh003/tools/vcs/R-2020.12-SP2/linux64/lib -L/mnt/vol_NFS_rh003/tools/vcs/R-2020.12-SP2/linux64/lib \
+-Wl,-rpath-link=./  /usr/lib64/libnuma.so.1     _1818661_archive_1.so _prev_archive_1.so \
+_cuarc0.so  SIM_l.o      rmapats_mop.o rmapats.o rmar.o rmar_nd.o  rmar_llvm_0_1.o \
+rmar_llvm_0_0.o           -lvirsim -lerrorinf -lsnpsmalloc -lvfs    -lvcsnew -lsimprofile \
+-lreader_common /mnt/vol_NFS_rh003/tools/vcs/R-2020.12-SP2/linux64/lib/libBA.a -luclinative \
+/mnt/vol_NFS_rh003/tools/vcs/R-2020.12-SP2/linux64/lib/vcs_tls.o   -Wl,-whole-archive \
+-lvcsucli    -Wl,-no-whole-archive        _vcs_pli_stub_.o   /mnt/vol_NFS_rh003/tools/vcs/R-2020.12-SP2/linux64/lib/vcs_save_restore_new.o \
+/mnt/vol_NFS_rh003/tools/verdi/R-2020.12-SP2/share/PLI/VCS/LINUX64/pli.a -ldl  -lc \
+-lm -lpthread -ldl 
+../salida up to date
+CPU time: .587 seconds to compile + .220 seconds to elab + .482 seconds to link
+Verdi KDB elaboration done and the database successfully generated: 0 error(s), 0 warning(s)
