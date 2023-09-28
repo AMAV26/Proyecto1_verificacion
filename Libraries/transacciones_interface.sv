@@ -6,12 +6,13 @@ typedef enum {push, pop,reset} tipo_trans;
 //////////////// Transacciones del bus handler/////////////////////////////////////// (Transacciones que entran y salen de las FIFO)////////////////////////////////////////////////////////////////////////////////////////////////
 class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter broadcast={8{1'b1}});
     rand int retardo; // tiempo de retardo en ciclos de reloj que se debe esperar antes de ejecutar la transacción
-  	rand bit[pkg_size-9:0] dato; // este es el dato de la transacción
+  	rand bit[pkg_size-9:0] dato; // este es el dato de la transacción  
+    //Estamos manejando bien el dato? 
   	int tiempo; //Representa el tiempo  de la simulación en el que se ejecutó la transacción 
   	tipo_trans tipo; // lectura(pop), escritura(push), reset; Podría hacerlo rand, todavia no lo haré para ver que hace
   	int max_retardo;
-  	rand bit [7:0] dispositivo_tx; //fifo in (QEUE)
-  	rand bit [7:0] dispositivo_rx; // fifo out (QEUE)
+  	rand bit [7:0] dispositivo_tx; //fifo in (QUEUE)
+  	rand bit [7:0] dispositivo_rx; // fifo out (QUEUE)
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
 
 	function bit inside_driver_range();
@@ -52,6 +53,13 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
                  this.dispositivo_tx,
                  this.dispositivo_rx);
     endfunction
+  function void randomize_data();
+    this.dato=$random;
+    this.dato=this.dato & ((1<<(pkg_size - 9))-1); //Restringe el tamaño del valor al tamaño adecuado
+
+    
+  endfunction
+
     /*function void print(string tag = "");
     $display("[%g] %s Tiempo=%g Tipo=%s Retardo=%g dato=0x%h",$time,tag,tiempo,this.tipo,this.retardo,this.dato);
   endfunction*/
@@ -89,6 +97,7 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
         2,//valor dispositivo_rx
         0//No aplico reset
     );
+    transaction2.randomize_data();
   /*  transaction3 = new(
        $urandom_range(1,255), //valor random  para dato
          $urandom_range(1,75), //valor random para retardo
@@ -221,7 +230,7 @@ class trans_sb #(parameter pkg_size=16);
   endfunction
 endclass
 /////////////////////////////////////////////////////////////////////////
-// Definición de estructura para generar comandos hacia el scroreboard //
+// Definición de estructura para generar comandos hacia el scoreboard //
 /////////////////////////////////////////////////////////////////////////
 typedef enum {retardo_promedio,reporte} solicitud_sb;
 
