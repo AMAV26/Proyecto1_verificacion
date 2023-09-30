@@ -59,7 +59,14 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
 
     
   endfunction
+  
+  function void randomize_drivers();
+    this.dispositivo_rx=$random; 
+    this.dispositivo_tx=$random;
+    
+  
 
+  endfunction
     /*function void print(string tag = "");
     $display("[%g] %s Tiempo=%g Tipo=%s Retardo=%g dato=0x%h",$time,tag,tiempo,this.tipo,this.retardo,this.dato);
   endfunction*/
@@ -97,7 +104,8 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
         2,//valor dispositivo_rx
         0//No aplico reset
     );
-    transaction2.randomize_data();
+    transaction2.randomize_data(); 
+    transaction2.randomize_drivers();
   /*  transaction3 = new(
        $urandom_range(1,255), //valor random  para dato
          $urandom_range(1,75), //valor random para retardo
@@ -259,5 +267,5 @@ typedef mailbox #(solicitud_sb) comando_test_sb_mbx;
 ///////////////////////////////////////////////////////////////////////////////////////
 typedef mailbox #(instrucciones_agente) comando_test_agent_mbx;
 
-
+typedef mailbox
 ///////Lo anterior no tiene dummy test, ya que es còdigo del profe que según él ya está probado/////
