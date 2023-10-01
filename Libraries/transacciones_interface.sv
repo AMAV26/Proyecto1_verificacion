@@ -14,6 +14,13 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
   	rand bit [7:0] dispositivo_tx; //fifo in (QUEUE)
   	rand bit [7:0] dispositivo_rx; // fifo out (QUEUE)
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
+  constraint tx_range {
+        dispositivo_tx inside {[0: drvrs-1]}; // Restringido al rango de 0 a drvrs-1
+    }
+
+    constraint rx_range {
+        dispositivo_rx inside {[0: drvrs-1]}; // Restringido al rango de 0 a drvrs-1
+    }
 
 	function bit inside_driver_range();
     		if (dispositivo_rx >= 0 && dispositivo_rx < drvrs)
@@ -61,8 +68,8 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
   endfunction
   
   function void randomize_drivers();
-    this.dispositivo_rx=$random; 
-    this.dispositivo_tx=$random;
+    this.dispositivo_rx=$random % drvrs; 
+    this.dispositivo_tx=$random % drvrs;
     
   
 
@@ -105,7 +112,7 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
         0//No aplico reset
     );
     transaction2.randomize_data(); 
-    transaction2.randomize_drivers();
+    transaction2.randomize();
   /*  transaction3 = new(
        $urandom_range(1,255), //valor random  para dato
          $urandom_range(1,75), //valor random para retardo
@@ -267,5 +274,5 @@ typedef mailbox #(solicitud_sb) comando_test_sb_mbx;
 ///////////////////////////////////////////////////////////////////////////////////////
 typedef mailbox #(instrucciones_agente) comando_test_agent_mbx;
 
-typedef mailbox
+//typedef mailbox
 ///////Lo anterior no tiene dummy test, ya que es còdigo del profe que según él ya está probado/////
