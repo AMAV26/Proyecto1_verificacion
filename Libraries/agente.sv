@@ -7,11 +7,10 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     comando_test_agente_mbx test_agente_mbx ; 
     int max_retardo;
     
-    int AAA_A; 
     int num_transacciones;
 
     instrucciones_agente tipo_instruccion; 
-    trans_bushandler #(.pkg_size(pkg_size), .drvrs(drvrs)) transaccion;
+    trans_bushandler #(.pkg_size(pkg_size), .drvrs(drvrs)) transaccion_driver;
     trans_sb #(.pkg_size(pkg_size), .drvrs(drvrs)) trans_agente_sb;
     function new;
         max_retardo=20;
@@ -21,6 +20,7 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
 task InitandRun;    
     int trans_realizadas=0;
     int trans_restantes;
+    
     $display("Inicializando agente en [%g], pkg_size %g y drvrs %g", $time, this.pkg_size, this.drvrs);
     begin
     #1
@@ -39,27 +39,55 @@ task InitandRun;
                     #1   
                     
                     $display("Transacciones Realizadas %g | Transacciones restantes %g", trans_realizadas, num_transacciones-trans_realizadas); //Para llevar control 
-                    transaccion=new;
-                    transaccion.tipo=push;
-                    transaccion.max_retardo=30;
-                    transaccion.randomize_data();
-                    transaccion.randomize(); 
-                    transaccion.print(); 
-                    agente_driver_mbx.put(transaccion); 
+                    transaccion_driver=new;
+                    transaccion_driver.max_retardo=30;
+                    transaccion_driver.randomize_data();
+                    transaccion_driver.randomize(); 
+                    transaccion_driver.tipo=push;
+                    transaccion_driver.print(); 
+                   // agente_driver_mbx.put(transaccion_driver); 
                     trans_agente_sb=new;  
-                    trans_agente_sb.dato_enviado=transaccion.dato;
+                    trans_agente_sb.dato_enviado=transaccion_driver.dato;
                     trans_agente_sb.tiempo_push=$time;
-                    trans_agente_sb.drvr_rx=transaccion.dispositivo_rx;
-                    trans_agente_sb.drvr_tx=transaccion.dispositivo_tx;
+                    trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
+                    trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
                     agente_scoreboard_mbx.put(trans_agente_sb);
                     trans_realizadas++;
-                    
+                    $display ("Tipo: %s", $typename(trans_agente_sb));
+
                     //trans_agent_driver.dato={transacccion.dispositivo_rx, transaccion.dato} concateno
                     //trans_agent_driver.tipo=push
                     
                 end
             end
+            trans_aleatoria: begin
+                    #1 
+                    $display ("Generando una transaccion aleatoria en [%g]", $time);
+                    transaccion_driver=new;
+                    transaccion_driver.randomize();
+                    transaccion_driver.print();
+                end 
+
+            broadcast: begin
+                #1
+                $display ("Generando broadcast");
+                transaccion_driver=new;
+                transaccion_driver.randomize();
+                transaccion_driver.dispositivo_rx={8{1'b1}};
+                transaccion_driver.print();
+            end
+
+            broadcast_id: begin
+                #1
+                $display ("Generando broadcast igual al ID");
+                transaccion_driver=new;
+                transaccion_driver.randomize();
+                //transaccion_driver.broadcast=$random % (transaccion_driver.drvrs+1);
+                transaccion_driver.print();
+            end 
         endcase
+
+        
     end
 end
 endtask
@@ -72,7 +100,7 @@ module tb;
     trans_sb_mbx test_scoreboard_mb;
     trans_bushandler_mbx agente_driver_mb;
     agente #(16,8) agente_tb;
-    instrucciones_agente tipo_instruccion=llenado_aleatorio;
+    instrucciones_agente tipo_instruccion=broadcast;
     initial begin
        
         test_agente_mb=new();       
@@ -83,6 +111,7 @@ module tb;
         test_agente_mb.put(tipo_instruccion);
         agente_tb.test_agente_mbx= test_agente_mb;
         agente_tb.agente_scoreboard_mbx = test_scoreboard_mb;
+        agente_tb.agente_driver_mbx=agente_driver_mb;
         $display("agente_tb %g", agente_tb.pkg_size);
         agente_tb.InitandRun();
         $display("Desplegando Mailbox de Scoreboard");
