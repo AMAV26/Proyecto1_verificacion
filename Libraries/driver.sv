@@ -2,7 +2,7 @@ class fifo_sim #(parameter pkg_size=16, parameter driver=8);
 //deberia hacer un bit broadcast??
      bit pop;
      bit push;
-     bit pndng
+     bit pndng;
      bit rst;       
      bit [pkg_size-1:0] D_push;
      bit [pkg_size-1:0] D_pop;
@@ -15,28 +15,74 @@ class fifo_sim #(parameter pkg_size=16, parameter driver=8);
         this.rst = 0;
     endfunction
 
-    task reset(bit rst)
+    task reset(bit rst);
         if(this.rst ==1) begin
            fifo.delete();
             pndng = 0;
         end     
     endtask
 
-    task push(bit [pckg_sz-1:0] D_push);
+    task escritura(bit [pckg_sz-1:0] D_push);
         if (this.push==1) begin
            fifo.push_front(D_push);
             pndng = 1;
         end
     endtask
 
-    task pop(bit [pckg_sz-1:0] D_pop);
+    task lectura(bit [pckg_sz-1:0] D_pop);
         if (this.pop==1) begin
             D_pop = fifo.pop_back();
         end if (sim_fifo.size()==0) begin
             pndng = 0;
         end
     endtask
-endclass            
+endclass
+//////PROBANDO EL HYMALAYAAAA///////////
+/*
+module tb_fifo_sim;
+
+  // Instancia de la FIFO
+  fifo_sim my_fifo;
+
+  // Generación de reloj
+  always begin
+    #5 my_fifo.lectura = ~my_fifo.lectura;
+    #10 my_fifo.escritura = ~my_fifo.escritura;
+    // Cambia el valor de lectura y escritura alternadamente
+  end
+
+  // Inicialización
+  initial begin
+    $display("Iniciando simulación");
+    
+    // Realiza un reset inicial
+    my_fifo.rst = 1;
+    my_fifo.reset();
+    
+    // Simula una secuencia de escritura y lectura
+    // Inserta un paquete en la FIFO
+    my_fifo.escritura(16'h1234);
+    
+    // Realiza una lectura y verifica el valor devuelto
+    int valor_leido;
+    my_fifo.lectura(valor_leido);
+    $display("Valor leído: 16'h%h", valor_leido);
+    
+    // Realiza otra escritura
+    my_fifo.escritura(16'h5678);
+    
+    // Realiza otra lectura
+    my_fifo.lectura(valor_leido);
+    $display("Valor leído: 16'h%h", valor_leido);
+
+    // Finaliza la simulación
+    $finish;
+  end
+
+endmodule
+*/
+
+
 class driver_hijo #(parameter drvrs=4, parameter pkg_sizw=16, parameter depth=8, parameter bits=1, parameter broadcast = {8{1'b1}});//deberia poner parameter broadcast??
 	fifo_sim #(.pkg_size(pkg_size), .depth(depth)) fifo_in;
 	virtual bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size)) vif; //no defini bits por que en la interface no esta,  igual siempre es uno, mas bien no se si quitarlo como parametro en driver hijos	
