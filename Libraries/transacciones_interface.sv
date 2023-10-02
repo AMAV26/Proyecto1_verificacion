@@ -6,13 +6,14 @@ typedef enum {push,pop,reset} tipo_trans;
 //////////////// Transacciones del bus handler/////////////////////////////////////// (Transacciones que entran y salen de las FIFO)////////////////////////////////////////////////////////////////////////////////////////////////
 class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter broadcast={8{1'b1}});
     rand int retardo; // tiempo de retardo en ciclos de reloj que se debe esperar antes de ejecutar la transacción
-  	rand bit[pkg_size-9:0] dato; // este es el dato de la transacción  
+  	rand bit[8:pkg_size] dato; // este es el dato de la transacción  
     //Estamos manejando bien el dato? 
   	int tiempo; //Representa el tiempo  de la simulación en el que se ejecutó la transacción 
-  	tipo_trans tipo; // lectura(pop), escritura(push), reset; Podría hacerlo rand, todavia no lo haré para ver que hace
+  	rand tipo_trans tipo; // lectura(pop), escritura(push), reset; Podría hacerlo rand, todavia no lo haré para ver que hace
   	int max_retardo;
   	rand bit [7:0] dispositivo_tx; //fifo in (QUEUE)
   	rand bit [7:0] dispositivo_rx; // fifo out (QUEUE)
+    
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
   constraint tx_range {
         dispositivo_tx inside {[0: drvrs-1]}; // Restringido al rango de 0 a drvrs-1
@@ -280,3 +281,4 @@ typedef mailbox #(instrucciones_agente) comando_test_agente_mbx;
 
 //typedef mailbox
 ///////Lo anterior no tiene dummy test, ya que es còdigo del profe que según él ya está probado/////
+instrucciones_agente tipo_instruccion=llenado_aleatorio;dr=
