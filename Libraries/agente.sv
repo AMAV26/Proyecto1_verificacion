@@ -7,11 +7,12 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     comando_test_agente_mbx test_agente_mbx ; 
     int max_retardo;
     
-    
+    int AAA_A; 
     int num_transacciones;
+
     instrucciones_agente tipo_instruccion; 
-    trans_bushandler #(.pkg_size(pkg_size)) transaccion;
-    trans_sb #(.pkg_size(pkg_size)) trans_agente_sb;
+    trans_bushandler #(.pkg_size(pkg_size), .drvrs(drvrs)) transaccion;
+    trans_sb #(.pkg_size(pkg_size), .drvrs(drvrs)) trans_agente_sb;
     function new;
         max_retardo=20;
     endfunction
@@ -20,37 +21,37 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
 task InitandRun;    
     int trans_realizadas=0;
     int trans_restantes;
-    $display("Inicializando agente en [%g]", $time);
+    $display("Inicializando agente en [%g], pkg_size %g y drvrs %g", $time, this.pkg_size, this.drvrs);
     begin
     #1
-    $display ("Pruebas a realizar %g", num_transacciones);
+    //$display ("Pruebas a realizar %g", num_transacciones);
     trans_restantes=test_agente_mbx.num(); //Obteniendo numero de cosas en el mailbox
+    $display("Transacciones Restantes %g", trans_restantes);
     if(trans_restantes>0) begin 
+        
         $display("Instruccion recibida en [%g]", $time);
         test_agente_mbx.get(tipo_instruccion);
         case(tipo_instruccion)
             llenado_aleatorio: begin
-                num_transacciones=20;            
+                num_transacciones=5;            
                 $display ("Llenando aleatoriamente a partir de [%g]", $time);
                 for (int i=0; i<num_transacciones; i++) begin
-                   
+                    #1   
                     
-                    $display("Transacciones Realizadas %g | Transacciones restantes %g", trans_realizadas, trans_restantes-trans_realizadas); //Para llevar control 
-
+                    $display("Transacciones Realizadas %g | Transacciones restantes %g", trans_realizadas, num_transacciones-trans_realizadas); //Para llevar control 
                     transaccion=new;
                     transaccion.tipo=push;
                     transaccion.max_retardo=30;
                     transaccion.randomize_data();
                     transaccion.randomize(); 
-                    
-                   
+                    transaccion.print(); 
+                    agente_driver_mbx.put(transaccion); 
                     trans_agente_sb=new;  
                     trans_agente_sb.dato_enviado=transaccion.dato;
                     trans_agente_sb.tiempo_push=$time;
                     trans_agente_sb.drvr_rx=transaccion.dispositivo_rx;
                     trans_agente_sb.drvr_tx=transaccion.dispositivo_tx;
                     agente_scoreboard_mbx.put(trans_agente_sb);
-
                     trans_realizadas++;
                     
                     //trans_agent_driver.dato={transacccion.dispositivo_rx, transaccion.dato} concateno
@@ -68,15 +69,31 @@ endclass
 
 module tb;
     comando_test_agente_mbx test_agente_mb;
-    agente #(16,4) agente_tb;
-    
+    trans_sb_mbx test_scoreboard_mb;
+    trans_bushandler_mbx agente_driver_mb;
+    agente #(16,8) agente_tb;
+    instrucciones_agente tipo_instruccion=llenado_aleatorio;
     initial begin
-        instrucciones_agente tipo_instruccion =llenado_aleatorio;
+       
+        test_agente_mb=new();       
+        test_scoreboard_mb=new();
+        agente_driver_mb=new();
+        agente_tb=new();
+         
         test_agente_mb.put(tipo_instruccion);
-        agente_tb.test_agente_mbx=test_agente_mb;
-
-        $display("Hola");
+        agente_tb.test_agente_mbx= test_agente_mb;
+        agente_tb.agente_scoreboard_mbx = test_scoreboard_mb;
+        $display("agente_tb %g", agente_tb.pkg_size);
+        agente_tb.InitandRun();
+        $display("Desplegando Mailbox de Scoreboard");
+        while (test_scoreboard_mb.num()>0) begin
+            trans_sb trans_recibida;
+            trans_sb transaccion;
+            test_scoreboard_mb.get(transaccion);
+            $display("Transaccion en mailbox");
+            transaccion.print("");
     end
+end
 endmodule
 
                     
