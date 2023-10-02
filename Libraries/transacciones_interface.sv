@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 /////////////Posibles transacciones de la FIFO////////////////
 //////////////////////////////////////////////////////////////
-typedef enum {push, pop,reset} tipo_trans; 
+typedef enum {push,pop,reset} tipo_trans; 
 ///////////////////////////////////////////////////////////////////////////
 //////////////// Transacciones del bus handler/////////////////////////////////////// (Transacciones que entran y salen de las FIFO)////////////////////////////////////////////////////////////////////////////////////////////////
 class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter broadcast={8{1'b1}});
@@ -37,7 +37,7 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
 		this.dato = dato;
 		this.tiempo = temp;
 		this.tipo = tipo;
-        this.reset=rst;
+    this.reset=rst;
 		this.max_retardo = mx_rtrd;
 		this.dispositivo_tx = disp_tx;
 		this.dispositivo_rx = disp_rx;
@@ -214,6 +214,8 @@ class trans_sb #(parameter pkg_size=16);
   bit underflow;
   bit reset;
   int latencia;
+  int drvr_tx;
+  int drvr_rx;
   
   function clean();
     this.dato_enviado = 0;
@@ -244,6 +246,8 @@ class trans_sb #(parameter pkg_size=16);
              this.latencia);
   endfunction
 endclass
+
+
 /////////////////////////////////////////////////////////////////////////
 // Definición de estructura para generar comandos hacia el scoreboard //
 /////////////////////////////////////////////////////////////////////////
@@ -257,7 +261,7 @@ typedef enum {llenado_aleatorio,trans_aleatoria,trans_especifica,sec_trans_aleat
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
 ///////////////////////////////////////////////////////////////////////////////////////
-typedef mailbox #(trans_fifo) trans_fifo_mbx;
+typedef mailbox #(trans_bushandler) trans_bushandler_mbx;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
@@ -272,7 +276,7 @@ typedef mailbox #(solicitud_sb) comando_test_sb_mbx;
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
 ///////////////////////////////////////////////////////////////////////////////////////
-typedef mailbox #(instrucciones_agente) comando_test_agent_mbx;
+typedef mailbox #(instrucciones_agente) comando_test_agente_mbx;
 
 //typedef mailbox
 ///////Lo anterior no tiene dummy test, ya que es còdigo del profe que según él ya está probado/////
