@@ -80,8 +80,8 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
 endclass
 
 ///////////PRUEBA CLASE BUS HANDLER/////////////////
-module testbench;
-  // Parámetros
+/*module testbench;
+/// Parámetros
   parameter pkg_size = 16;
   parameter drvrs = 4;
   parameter broadcast = {8{1'b1}};
@@ -125,7 +125,7 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
       );*/
 
     // Imprimir información sobre la instancia
-    transaction.print("Transacción 1");
+   /* transaction.print("Transacción 1");
     transaction2.print("Transaccion 2");
    // transaction3.print("Transaccion 3");
    
@@ -151,8 +151,9 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
     // Finalizar la simulación
  //   $finish;
   end
-endmodule
-  /////////////////FINAL DE LA PRUEBA DE LA CLASE BUS HANDLER///////////
+endmodule*/
+
+/////////////////FINAL DE LA PRUEBA DE LA CLASE BUS HANDLER///////////
   
 
  ///////////////////////////////////////////////////////////////////
@@ -173,7 +174,7 @@ logic [pkg_size-1:0] d_push [0:0][drvrs-1:0];
 endinterface
 
 //////////////////Probando que la interface funcione//////////////////
-module testbench2;
+/*module testbench2;
     reg clk;
     //instanciando bushandler
     bushandler_if #(4,16) my_bushandler( .clk(clk) );
@@ -198,7 +199,7 @@ module testbench2;
         $finish;
     end
 
-endmodule
+endmodule*/
 ///////Segun el dummy test la interfaz funca///////////
 
 ////////////////////////////////////////////////////
@@ -233,7 +234,7 @@ class trans_sb #(parameter pkg_size=16);
   endtask
   
   function print (string tag);
-    $display("[%g] %s dato=%h,t_push=%g,t_pop=%g,cmplt=%g,ovrflw=%g,undrflw=%g,rst=%g,ltncy=%g", 
+    $display("[%g] %s dato=%h,t_push=%g,t_pop=%g,cmplt=%g,ovrflw=%g,undrflw=%g,rst=%g,ltncy=%g, tx=%g, rx=%g", 
              $time,
              tag, 
              this.dato_enviado, 
@@ -243,7 +244,10 @@ class trans_sb #(parameter pkg_size=16);
              this.overflow,
              this.underflow,
              this.reset,
-             this.latencia);
+             this.latencia,
+             this.drvr_tx,
+             this.drvr_rx       
+         );
   endfunction
 endclass
 
@@ -256,7 +260,7 @@ typedef enum {retardo_promedio,reporte} solicitud_sb;
 /////////////////////////////////////////////////////////////////////////
 // Definición de estructura para generar comandos hacia el agente      //
 /////////////////////////////////////////////////////////////////////////
-typedef enum {llenado_aleatorio,trans_aleatoria,trans_especifica,sec_trans_aleatorias} instrucciones_agente;
+typedef enum {llenado_aleatorio,trans_aleatoria,trans_especifica,sec_trans_aleatorias,broadcast, broadcast_id} instrucciones_agente;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
