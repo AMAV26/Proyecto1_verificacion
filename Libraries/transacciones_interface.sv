@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////
 /////////////Posibles transacciones de la FIFO////////////////
 //////////////////////////////////////////////////////////////
-typedef enum {push, pop,reset} tipo_trans; 
+typedef enum {push,pop,reset} tipo_trans; 
 ///////////////////////////////////////////////////////////////////////////
 //////////////// Transacciones del bus handler/////////////////////////////////////// (Transacciones que entran y salen de las FIFO)////////////////////////////////////////////////////////////////////////////////////////////////
 class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter broadcast={8{1'b1}});
@@ -14,6 +14,13 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
   	rand bit [7:0] dispositivo_tx; //fifo in (QUEUE)
   	rand bit [7:0] dispositivo_rx; // fifo out (QUEUE)
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
+  constraint tx_range {
+        dispositivo_tx inside {[0: drvrs-1]}; // Restringido al rango de 0 a drvrs-1
+    }
+
+    constraint rx_range {
+        dispositivo_rx inside {[0: drvrs-1]}; // Restringido al rango de 0 a drvrs-1
+    }
 
 	function bit inside_driver_range();
     		if (dispositivo_rx >= 0 && dispositivo_rx < drvrs)
@@ -30,7 +37,7 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
 		this.dato = dato;
 		this.tiempo = temp;
 		this.tipo = tipo;
-        this.reset=rst;
+    this.reset=rst;
 		this.max_retardo = mx_rtrd;
 		this.dispositivo_tx = disp_tx;
 		this.dispositivo_rx = disp_rx;
@@ -59,7 +66,14 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
 
     
   endfunction
+  
+  function void randomize_drivers();
+    this.dispositivo_rx=$random % drvrs; 
+    this.dispositivo_tx=$random % drvrs;
+    
+  
 
+  endfunction
     /*function void print(string tag = "");
     $display("[%g] %s Tiempo=%g Tipo=%s Retardo=%g dato=0x%h",$time,tag,tiempo,this.tipo,this.retardo,this.dato);
   endfunction*/
@@ -97,7 +111,8 @@ trans_bushandler#(pkg_size, drvrs, broadcast) transaction3;
         2,//valor dispositivo_rx
         0//No aplico reset
     );
-    transaction2.randomize_data();
+    transaction2.randomize_data(); 
+    transaction2.randomize();
   /*  transaction3 = new(
        $urandom_range(1,255), //valor random  para dato
          $urandom_range(1,75), //valor random para retardo
@@ -199,6 +214,8 @@ class trans_sb #(parameter pkg_size=16);
   bit underflow;
   bit reset;
   int latencia;
+  int drvr_tx;
+  int drvr_rx;
   
   function clean();
     this.dato_enviado = 0;
@@ -229,6 +246,8 @@ class trans_sb #(parameter pkg_size=16);
              this.latencia);
   endfunction
 endclass
+
+
 /////////////////////////////////////////////////////////////////////////
 // Definición de estructura para generar comandos hacia el scoreboard //
 /////////////////////////////////////////////////////////////////////////
@@ -242,7 +261,7 @@ typedef enum {llenado_aleatorio,trans_aleatoria,trans_especifica,sec_trans_aleat
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
 ///////////////////////////////////////////////////////////////////////////////////////
-typedef mailbox #(trans_fifo) trans_fifo_mbx;
+typedef mailbox #(trans_bushandler) trans_bushandler_mbx;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
@@ -257,7 +276,7 @@ typedef mailbox #(solicitud_sb) comando_test_sb_mbx;
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
 ///////////////////////////////////////////////////////////////////////////////////////
-typedef mailbox #(instrucciones_agente) comando_test_agent_mbx;
+typedef mailbox #(instrucciones_agente) comando_test_agente_mbx;
 
-
+//typedef mailbox
 ///////Lo anterior no tiene dummy test, ya que es còdigo del profe que según él ya está probado/////
