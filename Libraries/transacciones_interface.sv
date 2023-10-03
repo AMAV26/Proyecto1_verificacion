@@ -4,7 +4,7 @@
 typedef enum {push,pop,reset} tipo_trans; 
 ///////////////////////////////////////////////////////////////////////////
 //////////////// Transacciones del bus handler/////////////////////////////////////// (Transacciones que entran y salen de las FIFO)////////////////////////////////////////////////////////////////////////////////////////////////
-class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter broadcast={8{1'b1}});
+class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}});
     rand int retardo; // tiempo de retardo en ciclos de reloj que se debe esperar antes de ejecutar la transacción
   	rand bit[8:pkg_size] dato; // este es el dato de la transacción  
     //Estamos manejando bien el dato? 
@@ -16,11 +16,11 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter drvrs = 4,parameter 
     
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
   constraint tx_range {
-        dispositivo_tx inside {[0: drvrs-1]}; // Restringido al rango de 0 a drvrs-1
+        dispositivo_tx inside {[3: 16]}; // Restringido al rango de 0 a drvrs-1
     }
 
     constraint rx_range {
-        dispositivo_rx inside {[0: drvrs-1]}; // Restringido al rango de 0 a drvrs-1
+        dispositivo_rx inside {[3: 16]}; // Restringido al rango de 0 a drvrs-1
     }
 
 	function bit inside_driver_range();
