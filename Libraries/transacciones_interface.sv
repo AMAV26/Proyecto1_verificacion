@@ -13,14 +13,15 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}})
   	int max_retardo;
   	rand bit [7:0] dispositivo_tx; //fifo in (QUEUE)
   	rand bit [7:0] dispositivo_rx; // fifo out (QUEUE)
+    int drvrs;
     
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
   constraint tx_range {
-        dispositivo_tx inside {[3: 16]}; // Restringido al rango de 0 a drvrs-1
+        dispositivo_tx inside {[3: drvrs]}; // Restringido al rango de 0 a drvrs-1
     }
 
     constraint rx_range {
-        dispositivo_rx inside {[3: 16]}; // Restringido al rango de 0 a drvrs-1
+        dispositivo_rx inside {[3: drvrs]}; // Restringido al rango de 0 a drvrs-1
     }
 
 	function bit inside_driver_range();
