@@ -52,11 +52,12 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}})
     
   	endfunction
     function void print (string tag  =  "");
-      $display("[%g] [%s] Tiempo=%g Tipo=%s Retardo=%g dato = 0x%h Transmisor = 0x%h Receptor = 0x%h",
+      $display("[%g] [%s] Tiempo=%g Tipo=%s Retardo=%g, Broadcast=%g,  dato = 0x%h Transmisor = 0x%h Receptor = 0x%h",
                  $time,tag,
                  this.tiempo,
                  this.tipo.name,
                  this.retardo,
+                 this.broadcast,
                  this.dato,
                  this.dispositivo_tx,
                  this.dispositivo_rx);
