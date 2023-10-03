@@ -4,10 +4,13 @@
 typedef enum {push,pop,reset} tipo_trans; 
 ///////////////////////////////////////////////////////////////////////////
 //////////////// Transacciones del bus handler/////////////////////////////////////// (Transacciones que entran y salen de las FIFO)////////////////////////////////////////////////////////////////////////////////////////////////
-class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}});
+class trans_bushandler #(parameter pkg_size  = 16);
     rand int retardo; // tiempo de retardo en ciclos de reloj que se debe esperar antes de ejecutar la transacción
-  	rand bit[8:pkg_size] dato; // este es el dato de la transacción  
-    //Estamos manejando bien el dato? 
+  	rand bit[pkg_size-1:8] dato; // este es el dato de la transacción  
+    //Estamos manejando bien el dato?
+    //
+    reg [7:0] broadcast; 
+ 
   	int tiempo; //Representa el tiempo  de la simulación en el que se ejecutó la transacción 
   	rand tipo_trans tipo; // lectura(pop), escritura(push), reset; Podría hacerlo rand, todavia no lo haré para ver que hace
   	int max_retardo;
@@ -15,7 +18,7 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}})
   	rand bit [7:0] dispositivo_rx; // fifo out (QUEUE)
     int drvrs;
     bit [pkg_size-1:0] D_push;
-    
+    bit [pkg_size-1:0] D_pop; //transaccion.D_pop=transaccion.D_push 
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
   constraint tx_range {
         dispositivo_tx inside {[3: drvrs]}; // Restringido al rango de 0 a drvrs-1
@@ -41,12 +44,15 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}})
 		this.tiempo = temp;
 		this.tipo = tipo;
     this.reset=rst;
+    this.broadcast={8{1'b1}};
+    this.D_push=0;
 		this.max_retardo = mx_rtrd;
 		this.dispositivo_tx = disp_tx;
 		this.dispositivo_rx = disp_rx;
 	endfunction
   function void update_D_push();
-    this.D_push={dispositivo_rx,dato}
+    this.D_push={dispositivo_rx,dato};
+    this.D_pop=this.D_push;//Pensar Observar Analizar, preguntarle al profe 
   endfunction
   
 	function clean;
@@ -57,7 +63,7 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}})
     
   	endfunction
     function void print (string tag  =  "");
-      $display("[%g] [%s] Tiempo=%g Tipo=%s Retardo=%g, Broadcast=%g,  dato = 0x%h Transmisor = 0x%h Receptor = 0x%h",
+      $display("[%g] [%s] Tiempo=%g Tipo=%s Retardo=%g, Broadcast=%g,  dato = 0x%h Transmisor = 0x%h Receptor = 0x%h D_push=%b",
                  $time,tag,
                  this.tiempo,
                  this.tipo.name,
@@ -65,7 +71,8 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}})
                  this.broadcast,
                  this.dato,
                  this.dispositivo_tx,
-                 this.dispositivo_rx);
+                 this.dispositivo_rx,
+                 this.D_push);
     endfunction
   function void randomize_data();
     this.dato=$random;
@@ -291,4 +298,3 @@ typedef mailbox #(instrucciones_agente) comando_test_agente_mbx;
 
 //typedef mailbox
 ///////Lo anterior no tiene dummy test, ya que es còdigo del profe que según él ya está probado/////
-instrucciones_agente tipo_instruccion=llenado_aleatorio;dr=
