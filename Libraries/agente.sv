@@ -1,4 +1,5 @@
 //Agente-Generador
+`timescale 1ns/100ps
 `include "transacciones_interface.sv"
 class agente #(parameter pkg_size = 16, parameter drvrs=4);
     trans_bushandler_mbx test_agente_trans_mbx; 
@@ -7,7 +8,7 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     comando_test_agente_mbx test_agente_mbx ; 
     int max_retardo;
     
-    int num_transacciones;
+    int num_transacciones=30;
 
     instrucciones_agente tipo_instruccion; 
     trans_bushandler #(.pkg_size(pkg_size)) transaccion_driver;
@@ -15,34 +16,49 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     function new;
         max_retardo=20;
     endfunction
-function bit broadcast_check_mailboxes_put();
+task  mailboxes_put();
+    #1
     if (transaccion_driver.dispositivo_rx==transaccion_driver.broadcast)
-        return 1;
+        this.broadcast_do();
     else 
-       this. transaccion_driver.print(); 
-        agente_driver_mbx.put(transaccion_driver); 
-        trans_agente_sb=new;  
-        trans_agente_sb.dato_enviado=transaccion_driver.dato;
-        trans_agente_sb.tiempo_push=$time;
-        trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
-        trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-        agente_scoreboard_mbx.put(trans_agente_sb);
+       this.transaccion_driver.print(); 
+       this.agente_driver_mbx.put(this.transaccion_driver); 
+       this.trans_agente_sb=new;  
+       this.trans_agente_sb.dato_enviado=transaccion_driver.dato;
+       this.trans_agente_sb.tiempo_push=$time;
+       this.trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
+       this.trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
+       this.agente_scoreboard_mbx.put(trans_agente_sb);
 
         
         
-        return 0;
-endfunction
+endtask
 
-function void broadcast_do();
+task broadcast_do();
     
     $display("ejecutando broadcast");
-    for (int i=0; i<drivers; i=i+1) begin
-      
+    
+    for (int i=0; i<this.drvrs; i=i+1) begin
+        automatic int k=i;
+        #1
+        this.transaccion_driver.dispositivo_rx=k;
+        $display("###########################################");
+        $display(this.transaccion_driver); 
+        $display("############################################");
+        this.agente_driver_mbx.put(this.transaccion_driver);
+        this.trans_agente_sb=new;  
+        this.trans_agente_sb.dato_enviado=transaccion_driver.dato;
+        this.trans_agente_sb.tiempo_push=$time;
+        this.trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
+        this.trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
+        this.agente_scoreboard_mbx.put(trans_agente_sb);
+
+             
     
     end
 
 
-endfunction    
+endtask    
 
 
 task InitandRun;    
@@ -70,11 +86,11 @@ task InitandRun;
                     transaccion_driver=new;
                     transaccion_driver.drvrs=drvrs;
                     transaccion_driver.max_retardo=30;
-                    transaccion_driver.randomize_data();
                     transaccion_driver.randomize(); 
                     transaccion_driver.tipo=push;
                     transaccion_driver.update_D_push;
-                    if (this.broadcast_check()) begin 
+                    mailboxes_put();
+                   /* if (this.broadcast_check()) begin 
                         $display("Haciendo broadcast");
                         
                     end else begin
@@ -87,7 +103,7 @@ task InitandRun;
                         trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
                         trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
                         agente_scoreboard_mbx.put(trans_agente_sb);
-                    end
+                    end*/
                     
                     trans_realizadas++;
                     //trans_agent_driver.dato={transacccion.dispositivo_rx, transaccion.dato} concateno
@@ -105,7 +121,10 @@ task InitandRun;
                     transaccion_driver.update_D_push;
 
                     transaccion_driver.print();
+                    
                     agente_driver_mbx.put(transaccion_driver); 
+
+                   
 
                     trans_agente_sb=new;  
                     trans_agente_sb.dato_enviado=transaccion_driver.dato;
@@ -128,14 +147,16 @@ task InitandRun;
                 transaccion_driver.dispositivo_rx=transaccion_driver.broadcast;
                 transaccion_driver.update_D_push;
                 transaccion_driver.print();
-                agente_driver_mbx.put(transaccion_driver); 
+                mailboxes_put();
+
+                /*agente_driver_mbx.put(transaccion_driver); 
 
                 trans_agente_sb=new;  
                 trans_agente_sb.dato_enviado=transaccion_driver.dato;
                 trans_agente_sb.tiempo_push=$time;
                 trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
                 trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-                agente_scoreboard_mbx.put(trans_agente_sb);
+                agente_scoreboard_mbx.put(trans_agente_sb);*/
                 trans_realizadas++;
 
 
@@ -153,15 +174,15 @@ task InitandRun;
                 transaccion_driver.update_D_push;
 
                 transaccion_driver.print();
-                $display("Dato %b , Dispositivo_Rx %b", transaccion_driver.dato, transaccion_driver.dispositivo_rx);
-                agente_driver_mbx.put(transaccion_driver); 
+                mailboxes_put();
+                /*agente_driver_mbx.put(transaccion_driver); 
 
                 trans_agente_sb=new;  
                 trans_agente_sb.dato_enviado=transaccion_driver.dato;
                 trans_agente_sb.tiempo_push=$time;
                 trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
                 trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-                agente_scoreboard_mbx.put(trans_agente_sb);
+                agente_scoreboard_mbx.put(trans_agente_sb);*/
                 trans_realizadas++;
 
 
@@ -171,7 +192,9 @@ task InitandRun;
                 $display ("Generando transaccion especifica");
                 transaccion_driver=new;
                 test_agente_trans_mbx.get(transaccion_driver);
+                transaccion_driver.update_D_push();
                 transaccion_driver.print();
+                
                 agente_driver_mbx.put(transaccion_driver);
                 trans_agente_sb=new;
                 trans_agente_sb.dato_enviado=transaccion_driver.dato;
@@ -184,6 +207,20 @@ task InitandRun;
                
             
             end 
+
+            sec_trans_aleatorias: begin
+                for (int i=0; i<5; i++) begin //Randomizar esto
+                    transaccion_driver=new;
+                    transaccion_driver.drvrs=drvrs;
+                    transaccion_driver.randomize();
+                    transaccion_driver.update_D_push();
+                    mailboxes_put();
+                
+                end
+                
+            
+            
+            end
         endcase
 
         
@@ -201,7 +238,7 @@ module tb;
     trans_bushandler_mbx agente_driver_mb;
     agente #(16,8) agente_tb;
     trans_bushandler #(16) transaccion_test_agente;
-    instrucciones_agente tipo_instruccion=trans_especifica;
+    instrucciones_agente tipo_instruccion=sec_trans_aleatorias;
     initial begin
         
         test_agente_mb=new();  
