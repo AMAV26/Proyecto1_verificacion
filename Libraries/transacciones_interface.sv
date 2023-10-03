@@ -14,6 +14,7 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}})
   	rand bit [7:0] dispositivo_tx; //fifo in (QUEUE)
   	rand bit [7:0] dispositivo_rx; // fifo out (QUEUE)
     int drvrs;
+    bit [pkg_size-1:0] D_push;
     
 	bit reset;//lo hago así para controlarlo manualmente y probarlo
   constraint tx_range {
@@ -44,6 +45,9 @@ class trans_bushandler #(parameter pkg_size  = 16,parameter broadcast={8{1'b1}})
 		this.dispositivo_tx = disp_tx;
 		this.dispositivo_rx = disp_rx;
 	endfunction
+  function void update_D_push();
+    this.D_push={dispositivo_rx,dato}
+  endfunction
   
 	function clean;
       this.retardo = 0;
@@ -164,9 +168,9 @@ endmodule*/
  ///////////////////////////////////////////////////////////////////
  
 interface bushandler_if #( parameter drvrs = 4, parameter pkg_size = 16)//no defino el parametro bits por que es 1 siempre.
-(
-  input clk  
-);
+  (
+    input clk  
+  );
 logic reset;
 logic pndng[0:0][drvrs-1:0];
 logic push[0:0][drvrs-1:0];
