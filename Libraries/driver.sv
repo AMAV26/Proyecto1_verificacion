@@ -37,51 +37,6 @@ class fifo_sim #(parameter pkg_size=16, parameter driver=8);
 
    
 endclass
-//////PROBANDO EL HYMALAYAAAA///////////
-/*
-module tb_fifo_sim;
-
-  // Instancia de la FIFO
-  fifo_sim my_fifo;
-
-  // Generación de reloj
-  always begin
-    #5 my_fifo.lectura = ~my_fifo.lectura;
-    #10 my_fifo.escritura = ~my_fifo.escritura;
-    // Cambia el valor de lectura y escritura alternadamente
-  end
-
-  // Inicialización
-  initial begin
-    $display("Iniciando simulación");
-    
-    // Realiza un reset inicial
-    my_fifo.rst = 1;
-    my_fifo.reset();
-    
-    // Simula una secuencia de escritura y lectura
-    // Inserta un paquete en la FIFO
-    my_fifo.escritura(16'h1234);
-    
-    // Realiza una lectura y verifica el valor devuelto
-    int valor_leido;
-    my_fifo.lectura(valor_leido);
-    $display("Valor leído: 16'h%h", valor_leido);
-    
-    // Realiza otra escritura
-    my_fifo.escritura(16'h5678);
-    
-    // Realiza otra lectura
-    my_fifo.lectura(valor_leido);
-    $display("Valor leído: 16'h%h", valor_leido);
-
-    // Finaliza la simulación
-    $finish;
-  end
-
-endmodule
-*/
-
 
 class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8, parameter broadcast = {8{1'b1}}); //Me vole el parametro bits
 	fifo_sim #(.pkg_size(pkg_size), .depth(depth)) fifo_in;
@@ -107,32 +62,33 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8,
 
 	task run();
 		drvr_dhijo_mbx.peek(transaccion);
-		if (tx == transaccion.dispositivo_tx; )begin o
-			$display("[%g] Driver: Cantidad de mensajes a enviar %g",$time,drvr_dhijo_mbx.num());
-			drvr_dhijo_mbx.get(transaccion);
-			$display(":):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):)");
-			$display("[%g] Driver_hijo: Dispositivo %g listo para enviar",$time,tx);
+		if (tx == transaccion.dispositivo_tx; )begin 
+                
+			    $display("[%g] Driver: Cantidad de mensajes a enviar %g",$time,drvr_dhijo_mbx.num());
+			    drvr_dhijo_mbx.get(transaccion);
+			    $display(":):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):)");
+			    $display("[%g] Driver_hijo: Dispositivo %g listo para enviar",$time,tx);
 		
-			vif.pndng[bits-1][tx] <= 0;
-
-			vif.rst    <= 1;
-			#2 vif.rst <= 0;
-			fifo_in.D_push = transaccion.D_push;
-			fifo_in.escritura();
+	    		vif.pndng[bits-1][tx] <= 0;
+    
+	    		vif.rst    <= 1;
+		    	#2 vif.rst <= 0;
+			    fifo_in.D_push = transaccion.D_push;//Fijarse si transacciòn tiene un tipo D_push
+		    	fifo_in.escritura();
 ;
 
-			retardo = 0;
-			while (retardo < retardo_max)begin
-				retardo++;
-			end
+			    retardo = 0;
+		    	while (retardo < retardo_max)begin
+			    	retardo++;
+		    	end
 				
 	
-			fifo_in.lectura();
-			vif.D_pop[bits-1][tx] <= fifo_in.D_pop;
-			vif.pndng[bits-1][tx] <= fifo_in.pndng;
-			@(posedge vif.pop[0][tx]);
-				$display("[%g] Se envio el mensaje",$time);		
-				$display("[%g] D_pop = %b pndng = %b",$time,vif.D_pop[0][tx],vif.pndng[0][tx]);		
+			    fifo_in.lectura();
+		    	vif.D_pop[bits-1][tx] <= fifo_in.D_pop;
+		    	vif.pndng[bits-1][tx] <= fifo_in.pndng;
+		    	@(posedge vif.pop[0][tx]);
+		    		$display("[%g] Se envio el mensaje",$time);		
+		    		$display("[%g] D_pop = %b pndng = %b",$time,vif.D_pop[0][tx],vif.pndng[0][tx]);		
 		end		
 	endtask
 endclass
