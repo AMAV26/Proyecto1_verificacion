@@ -1,6 +1,6 @@
 //Agente-Generador
 `timescale 1ns/100ps
-`include "transacciones_interface.sv"
+//`include "transacciones_interface.sv"
 class agente #(parameter pkg_size = 16, parameter drvrs=4);
     trans_bushandler_mbx test_agente_trans_mbx; 
     trans_sb_mbx agente_scoreboard_mbx;

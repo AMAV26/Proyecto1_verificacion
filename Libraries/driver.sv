@@ -1,3 +1,5 @@
+///`include "transacciones_interface.sv"
+
 class fifo_sim #(parameter pkg_size=16, parameter driver=8);
      bit pop;
      bit push;
@@ -20,17 +22,17 @@ class fifo_sim #(parameter pkg_size=16, parameter driver=8);
         end     
     endtask
 
-    task escritura(bit [pckg_sz-1:0] D_push);//push
+    task escritura(bit [pkg_size-1:0] D_push);//push
         if (this.push==1) begin
            fifo.push_front(D_push);
             pndng = 1;
         end
     endtask
 
-    task lectura(bit [pckg_sz-1:0] D_pop);//pop
+    task lectura(bit [pkg_size-1:0] D_pop);//pop
         if (this.pop==1) begin
             D_pop = fifo.pop_back();
-        end if (sim_fifo.size()==0) begin
+        end if (fifo.size()==0) begin
             pndng = 0;
         end
     endtask
@@ -38,18 +40,18 @@ class fifo_sim #(parameter pkg_size=16, parameter driver=8);
    
 endclass
 
-class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8, parameter broadcast = {8{1'b1}}); //Me vole el parametro bits
+class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8); //Me vole el parametro bits
 	fifo_sim #(.pkg_size(pkg_size), .depth(depth)) fifo_in;
-	virtual bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size), .broadcast(broadcast)) vif;	
-	trans_bushandler_mbx drvr_dhijo_mbx; 
-	trans_bushandler #(.pkg_size(pkg_size), .drvrs(drvrs), .broadcast(broadcast)) transaccion;	
+	virtual bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size) ) vif;	
+    trans_bushandler_mbx drvr_dhijo_mbx; 
+	trans_bushandler #(.pkg_size(pkg_size))transaccion;	
 	
 	int retardo_max;
 	logic [7:0]rx;//destino
 	int tx; //tx  ESTO PODRIA GENERAR ERROR, ver si lo cambio a 8 bits aqui, o si mas bien cambio a entero en el bushandler INTERFACE
 
-	bit [width-1:0]dato;
-	bit [width-1:0]d_out;
+	bit [pkg_size-1:0]dato;
+	bit [pkg_size-1:0]d_out;
 	int retardo;
 	int dest = rx;
 	
@@ -62,20 +64,20 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8,
 
 	task run();
 		drvr_dhijo_mbx.peek(transaccion);
-		if (tx == transaccion.dispositivo_tx; )begin 
+		if (tx == transaccion.dispositivo_tx);begin 
                 
 			    $display("[%g] Driver: Cantidad de mensajes a enviar %g",$time,drvr_dhijo_mbx.num());
 			    drvr_dhijo_mbx.get(transaccion);
 			    $display(":):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):)");
 			    $display("[%g] Driver_hijo: Dispositivo %g listo para enviar",$time,tx);
 		
-	    		vif.pndng[bits-1][tx] <= 0;
+	    		vif.pndng[0][tx] <= 0;
     
-	    		vif.rst    <= 1;
-		    	#2 vif.rst <= 0;
+	    		vif.reset    <= 1;
+		    	#2 vif.reset <= 0;
 			    fifo_in.D_push = transaccion.D_push;//Fijarse si transacciòn tiene un tipo D_push
-		    	fifo_in.escritura();
-;
+		    	fifo_in.escritura(fifo_in.D_push);
+
 
 			    retardo = 0;
 		    	while (retardo < retardo_max)begin
@@ -83,18 +85,18 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8,
 		    	end
 				
 	
-			    fifo_in.lectura();
-		    	vif.D_pop[bits-1][tx] <= fifo_in.D_pop;
-		    	vif.pndng[bits-1][tx] <= fifo_in.pndng;
+			    fifo_in.lectura(transaccion.D_pop); //ASI??
+		    	vif.d_pop[0][tx] <= fifo_in.D_pop;
+		    	vif.pndng[0][tx] <= fifo_in.pndng;
 		    	@(posedge vif.pop[0][tx]);
 		    		$display("[%g] Se envio el mensaje",$time);		
-		    		$display("[%g] D_pop = %b pndng = %b",$time,vif.D_pop[0][tx],vif.pndng[0][tx]);		
+		    		$display("[%g] D_pop = %b pndng = %b",$time,vif.d_pop[0][tx],vif.pndng[0][tx]);		
 		end		
 	endtask
 endclass
-class driver_papi #(parameter pkg_size=16, parameter depth=8, parameter drvrs=4,parameter broadcast={8{1'b1}}); 
+class driver_papi #(parameter pkg_size=16, parameter depth=8, parameter drvrs=4); 
 	virtual bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size)) vif;	
-	driver_hijo #(.drvrs(drvrs),.pgk_size(pkg_size),.depth(depth),.broadcast(broadcast)) dhijo[drvrs-1:0];
+	driver_hijo #(.drvrs(drvrs),.pkg_size(pkg_size),.depth(depth)) dhijo[drvrs-1:0];
 	trans_bushandler_mbx agnt_drv_mbx; // Mailbox del agente al driver de tipo trans_bus
 
 	int espera;
@@ -132,4 +134,3 @@ task run();
 	//end
 endtask
 endclass 
-

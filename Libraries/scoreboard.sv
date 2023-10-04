@@ -17,9 +17,9 @@ task run;
 	$display("[%g] El scoreboard fue inicializado",$time);
 	forever begin
 		#5
-		if(chkr_sb_mbx.num()>0)begin
-			chkr_sb_mbx.get(transaccion_entrante);
-			transaccion_entrante.print("Scoreboard: Transaccion del checker recibida");
+		if(agente_scoreboard_mbx.num()>0)begin
+			agente_scoreboard_mbx.get(transaccion_entrante);
+			transaccion_entrante.print("Scoreboard: Transaccion del agente recibida");
 			if(transaccion_entrante.completado)begin
 				retardo_total = retardo_total + transaccion_entrante.latencia;
 				bw_total = bw_total + 1/transaccion_entrante.latencia;
