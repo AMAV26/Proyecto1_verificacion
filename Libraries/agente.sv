@@ -232,7 +232,7 @@ module tb;
     trans_bushandler_mbx test_agente_trans_mb;
     trans_sb_mbx test_scoreboard_mb;
     trans_bushandler_mbx agente_driver_mb;
-    agente #(16,8) agente_tb;
+    agente #(16,4) agente_tb;
     trans_bushandler #(16) transaccion_test_agente;
     instrucciones_agente tipo_instruccion=sec_trans_aleatorias;
     initial begin
