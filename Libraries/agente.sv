@@ -1,5 +1,4 @@
 //Agente-Generador
-`timescale 1ns/100ps
 //`include "transacciones_interface.sv"
 class agente #(parameter pkg_size = 16, parameter drvrs=4);
     trans_bushandler_mbx test_agente_trans_mbx; 
@@ -7,18 +6,18 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     trans_bushandler_mbx agente_driver_mbx;
     comando_test_agente_mbx test_agente_mbx ; 
     int max_retardo;
-    
     int num_transacciones;
-    
+    rand int numero_aleatorio;
     instrucciones_agente tipo_instruccion; 
     trans_bushandler #(.pkg_size(pkg_size)) transaccion_driver;
     trans_sb #(.pkg_size(pkg_size), .drvrs(drvrs)) trans_agente_sb;
     function new;
         max_retardo=20;
     endfunction
+
+    constraint numero_aleatorio_const {numero_aleatorio>0; numero_aleatorio<6;} 
 task  mailboxes_put();
     #1
-       this.transaccion_driver.print(); 
        this.agente_driver_mbx.put(this.transaccion_driver); 
        this.trans_agente_sb=new;  
        this.trans_agente_sb.dato_enviado=transaccion_driver.dato;
@@ -58,7 +57,8 @@ endtask
 endtask */ //Originalmente esta tarea haria los broadcast manualmente, no es necesario   
 
 
-task InitandRun;    
+task InitandRun;   
+ 
     int trans_realizadas=0;
     int trans_restantes;
     $display("Inicializando agente en [%g], pkg_size %g y drvrs %g", $time, this.pkg_size, this.drvrs);
@@ -66,25 +66,24 @@ task InitandRun;
     #1
     //$display ("Pruebas a realizar %g", num_transacciones);
     trans_restantes=test_agente_mbx.num(); //Obteniendo numero de cosas en el mailbox
-    $display("Transacciones Restantes %g", trans_restantes);
-    if(trans_restantes>0) begin 
+    while(trans_restantes>0) begin 
         
         $display("Instruccion recibida en [%g]", $time);
         test_agente_mbx.get(tipo_instruccion);
         case(tipo_instruccion)
             llenado_aleatorio: begin
-                num_transacciones=5;            
+                num_transacciones=10;            
                 $display ("Llenando aleatoriamente a partir de [%g]", $time);
                 for (int i=0; i<num_transacciones; i++) begin
                     #1   
                     
-                    $display("Transacciones Realizadas %g | Transacciones restantes %g", trans_realizadas, num_transacciones-trans_realizadas); //Para llevar control 
                     transaccion_driver=new;
                     transaccion_driver.drvrs=drvrs;
                     transaccion_driver.max_retardo=30;
                     transaccion_driver.randomize(); 
                     transaccion_driver.tipo=push;
                     transaccion_driver.update_D_push;
+                    transaccion_driver.print();
                     mailboxes_put();
                    /* if (this.broadcast_check()) begin 
                         $display("Haciendo broadcast");
@@ -112,22 +111,13 @@ task InitandRun;
                     $display ("Generando una transaccion aleatoria en [%g]", $time);
                     transaccion_driver=new;
                     transaccion_driver.drvrs=drvrs;
-
                     transaccion_driver.randomize();
                     transaccion_driver.update_D_push;
-
+                    transaccion_driver.tipo=push;
                     transaccion_driver.print();
-                    
-                    agente_driver_mbx.put(transaccion_driver); 
-
+                    mailboxes_put();
                    
 
-                    trans_agente_sb=new;  
-                    trans_agente_sb.dato_enviado=transaccion_driver.dato;
-                    trans_agente_sb.tiempo_push=$time;
-                    trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
-                    trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-                    agente_scoreboard_mbx.put(trans_agente_sb);
                     trans_realizadas++;
 
 
@@ -140,6 +130,7 @@ task InitandRun;
                 transaccion_driver.drvrs=drvrs;
 
                 transaccion_driver.randomize();
+                transaccion_driver.tipo=push;
                 transaccion_driver.dispositivo_rx=transaccion_driver.broadcast;
                 transaccion_driver.update_D_push;
                 transaccion_driver.print();
@@ -183,12 +174,13 @@ task InitandRun;
 
 
             end
-            trans_especifica: begin
+            /*trans_especifica: begin
                 #1
                 $display ("Generando transaccion especifica");
                 transaccion_driver=new;
                 test_agente_trans_mbx.get(transaccion_driver);
                 transaccion_driver.update_D_push();
+                transaccion_driver.tipo=push;
                 transaccion_driver.print();
                 
                 agente_driver_mbx.put(transaccion_driver);
@@ -202,21 +194,24 @@ task InitandRun;
 
                
             
-            end 
+            end*/ 
 
             sec_trans_aleatorias: begin
-                for (int i=0; i<5; i++) begin //Randomizar esto
+                    $display("Generando secuencia de transacciones aleatorias");
+                    this.randomize();
+                    $display("Numero de transacciones aleatorias a realizar: %g", this.numero_aleatorio);
+                    for (int i=0; i<numero_aleatorio; i++) begin
                     transaccion_driver=new;
                     transaccion_driver.drvrs=drvrs;
                     transaccion_driver.randomize();
                     transaccion_driver.update_D_push();
+                    transaccion_driver.print();
                     mailboxes_put();
-                
+                end
                 end
                 
             
             
-            end
         endcase
 
         
@@ -227,14 +222,13 @@ endtask
 endclass                
 
 
-module tb;
+/*module tb;
     comando_test_agente_mbx test_agente_mb;
-    trans_bushandler_mbx test_agente_trans_mb;
     trans_sb_mbx test_scoreboard_mb;
     trans_bushandler_mbx agente_driver_mb;
     agente #(16,4) agente_tb;
     trans_bushandler #(16) transaccion_test_agente;
-    instrucciones_agente tipo_instruccion=sec_trans_aleatorias;
+    instrucciones_agente tipo_instruccion=0;
     initial begin
         
         test_agente_mb=new();  
@@ -273,7 +267,7 @@ module tb;
             trans_recibida.print();
         end
 end
-endmodule
+endmodule*/
 
                     
                     

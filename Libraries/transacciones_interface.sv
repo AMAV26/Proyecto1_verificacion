@@ -272,7 +272,7 @@ typedef enum {retardo_promedio,reporte} solicitud_sb;
 /////////////////////////////////////////////////////////////////////////
 // Definición de estructura para generar comandos hacia el agente      //
 /////////////////////////////////////////////////////////////////////////
-typedef enum {llenado_aleatorio,trans_aleatoria,trans_especifica,sec_trans_aleatorias,broadcast, broadcast_id} instrucciones_agente;
+typedef enum {llenado_aleatorio,trans_aleatoria,sec_trans_aleatorias,broadcast, broadcast_id} instrucciones_agente;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
