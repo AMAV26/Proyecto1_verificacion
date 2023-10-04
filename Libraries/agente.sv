@@ -8,8 +8,8 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     comando_test_agente_mbx test_agente_mbx ; 
     int max_retardo;
     
-    int num_transacciones=30;
-
+    int num_transacciones;
+    
     instrucciones_agente tipo_instruccion; 
     trans_bushandler #(.pkg_size(pkg_size)) transaccion_driver;
     trans_sb #(.pkg_size(pkg_size), .drvrs(drvrs)) trans_agente_sb;
@@ -18,9 +18,6 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     endfunction
 task  mailboxes_put();
     #1
-    if (transaccion_driver.dispositivo_rx==transaccion_driver.broadcast)
-        this.broadcast_do();
-    else 
        this.transaccion_driver.print(); 
        this.agente_driver_mbx.put(this.transaccion_driver); 
        this.trans_agente_sb=new;  
@@ -34,7 +31,7 @@ task  mailboxes_put();
         
 endtask
 
-task broadcast_do();
+/*task broadcast_do();
     
     $display("ejecutando broadcast");
     
@@ -58,13 +55,12 @@ task broadcast_do();
     end
 
 
-endtask    
+endtask */ //Originalmente esta tarea haria los broadcast manualmente, no es necesario   
 
 
 task InitandRun;    
     int trans_realizadas=0;
     int trans_restantes;
-    
     $display("Inicializando agente en [%g], pkg_size %g y drvrs %g", $time, this.pkg_size, this.drvrs);
     begin
     #1
