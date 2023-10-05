@@ -21,42 +21,43 @@ class test #(parameter pkg_size = 16, parameter drvrs= 4);
         escoge_casos=this.casos;
         case(escoge_casos)
             0: begin
-                $display("Transaccion a realizar: Transaccion aleatoria");
                 return trans_aleatoria;
 
             end
             1: begin
-                $display("Transaccion a realizar: Llenado aleatorio");
                 return llenado_aleatorio;
             end
             2: begin
-                $display("Transaccion a realizar: sec_trans_aleatorias");
                 return sec_trans_aleatorias;
 
             end
             3: begin
-                $display("Transaccion a realizar: broadcast");
                 return broadcast;
             end
             4: begin
-                $display("Transaccion a realizar: broadcast_id");
                 return broadcast_id;
             end
         endcase
-
+    
 
     endfunction
     task run;
+        #10
         $display("[%g] Inicializando Test", $time);
         this.randomize();
         $display("Numero de transacciones a realizar %g", num_transacciones);
         this.primer_num=this.num_transacciones;
         for (int i=0; i<primer_num; i++) begin
+            #1
             this.randomize();
             caso=this.randomizar_transacciones;
             this.test_agente_mbx.put(caso); 
+            $display("Transaccion introducida en el mailbox %g", $time);
         end
-
+        $display("Transacciones enviadas al driver, ejecutando pops");
+        caso=pop_general;
+        this.test_agente_mbx.put(caso);
+        
     endtask
 
 endclass

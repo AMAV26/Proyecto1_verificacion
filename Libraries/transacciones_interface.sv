@@ -36,7 +36,7 @@ class trans_bushandler #(parameter pkg_size  = 16);
   	endfunction
 	//esta restricción const_dispositivo_rx  asegura que la variable dispositivo_rx debe estar dentro del rango definido, en resumen solo me asegura de que el ID que randomice, vaya de cero a drvrs-1 y que si el valor no esté en ese rango tire un error
   	constraint const_retardo {retardo < max_retardo; retardo>0;} // esta restricción acota el retardo de cada transacción entre 0 y un retardo máximo definido
-  
+    constraint const_transmisor_receptor {this.dispositivo_rx != this.dispositivo_tx;} 
   //////Creando el constructor para inicializar los miembros de la clase //////
   	function new(int rtrd = 0, bit [pkg_size:0] dato = 0,int temp = $time,tipo_trans tipo = pop,int mx_rtrd = 10,bit [7:0] disp_tx = 0, bit [7:0] disp_rx = 0, bit rst=1);
 		this.retardo = rtrd;
@@ -229,6 +229,7 @@ class trans_sb #(parameter pkg_size=16);
   int latencia;
   int drvr_tx;
   int drvr_rx;
+  tipo_trans tipo_transaccion;
   
   function clean();
     this.dato_enviado = 0;
@@ -239,6 +240,7 @@ class trans_sb #(parameter pkg_size=16);
     this.underflow = 0;
     this.reset = 0;
     this.latencia = 0;
+    
   endfunction
 
   task calc_latencia;
@@ -246,7 +248,7 @@ class trans_sb #(parameter pkg_size=16);
   endtask
   
   function print (string tag);
-    $display("[%g] %s dato=%h,t_push=%g,t_pop=%g,cmplt=%g,ovrflw=%g,undrflw=%g,rst=%g,ltncy=%g, tx=%g, rx=%g", 
+    $display("[%g] %s dato=%b,t_push=%g,t_pop=%g,cmplt=%g,ovrflw=%g,undrflw=%g,rst=%g,ltncy=%g, tx=%g, rx=%g tipo=%g", 
              $time,
              tag, 
              this.dato_enviado, 
@@ -258,7 +260,8 @@ class trans_sb #(parameter pkg_size=16);
              this.reset,
              this.latencia,
              this.drvr_tx,
-             this.drvr_rx       
+             this.drvr_rx,
+             this.tipo_transaccion       
          );
   endfunction
 endclass
@@ -272,7 +275,7 @@ typedef enum {retardo_promedio,reporte} solicitud_sb;
 /////////////////////////////////////////////////////////////////////////
 // Definición de estructura para generar comandos hacia el agente      //
 /////////////////////////////////////////////////////////////////////////
-typedef enum {llenado_aleatorio,trans_aleatoria,sec_trans_aleatorias,broadcast, broadcast_id} instrucciones_agente;
+typedef enum {llenado_aleatorio,trans_aleatoria,sec_trans_aleatorias,broadcast, broadcast_id, pop_general} instrucciones_agente;
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Definicion de mailboxes de tipo definido trans_fifo para comunicar las interfaces //
