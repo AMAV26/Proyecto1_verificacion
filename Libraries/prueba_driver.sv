@@ -24,7 +24,7 @@ parameter drvrs = 4;
 parameter pkg_size = 16;
 parameter depth = 16;
 
-  driver_papi #(.drvrs(drvrs),.depth(depth),.pkg_size(pkg_size)) drivertb;
+  driver_papi#(.drvrs(drvrs),.pkg_size(pkg_size)) drivertb;
   bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size)) vif(.clk(clk_tb));
  
   
@@ -38,20 +38,21 @@ parameter depth = 16;
                         );
 
   agente #(pkg_size,drvrs) agente_tb;
+         instrucciones_agente tipo_instruccion = llenado_aleatorio;
 initial begin
          test_agente_mb=new();
          test_scoreboard_mb=new();
          agente_driver_mb=new();
          agente_tb=new();
          drivertb=new();
- end
+
  //poniendo mbx en el agente
-initial begin
+         test_agente_mb.put(tipo_instruccion);
          agente_tb.test_agente_mbx= test_agente_mb;
          agente_tb.agente_scoreboard_mbx = test_scoreboard_mb;
          agente_tb.agente_driver_mbx=agente_driver_mb;
-         drivertb.agnt_drv_mbx = agente_driver_mb;
-         agente_tb.InitandRun();
+         drivertb.agente_driver_mbx = agente_driver_mb;
+    agente_tb.InitandRun();
 
         $display("###################################Desplegando Mailbox de Scoreboard################################");
         while (test_scoreboard_mb.num()>0) begin
@@ -67,7 +68,6 @@ initial begin
             $display("Transaccion en mailbox de driver");
             trans_recibida.print();
         end
-       
         drivertb.run();
 
 

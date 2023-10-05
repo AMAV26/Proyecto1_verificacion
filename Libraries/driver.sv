@@ -1,6 +1,6 @@
 ///`include "transacciones_interface.sv"
 
-class fifo_sim #(parameter pkg_size=16, parameter driver=8);
+class fifo_sim #(parameter pkg_size=16, parameter depth=8);
      bit pop;
      bit push;
      bit rst;       
@@ -63,8 +63,11 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8)
 	endfunction
 
 	task run();
-		drvr_dhijo_mbx.peek(transaccion);
-		if (tx == transaccion.dispositivo_tx);begin 
+	   $display("Entre al task runnn");
+        drvr_dhijo_mbx.peek(transaccion);
+	    $display("recibi la transaccion por medio del peek");
+        transaccion.print();
+        if (tx == transaccion.dispositivo_tx);begin 
                 
 			    $display("[%g] Driver: Cantidad de mensajes a enviar %g",$time,drvr_dhijo_mbx.num());
 			    drvr_dhijo_mbx.get(transaccion);
@@ -75,7 +78,8 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8)
     
 	    		vif.reset    <= 1;
 		    	#2 vif.reset <= 0;
-			    fifo_in.D_push = transaccion.D_push;//Fijarse si transacciòn tiene un tipo D_push
+			    fifo_in.D_push = transaccion.D_push;
+                
 		    	fifo_in.escritura(fifo_in.D_push);
 
 
@@ -85,8 +89,8 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8)
 		    	end
 				
 	
-			    fifo_in.lectura(transaccion.D_pop); //ASI??
-		    	vif.d_pop[0][tx] <= fifo_in.D_pop;
+			    fifo_in.lectura(transaccion.D_pop);
+		    	vif.d_pop[0][tx] <= fifo_in.D_pop;//eso esta ok?
 		    	vif.pndng[0][tx] <= fifo_in.pndng;
 		    	@(posedge vif.pop[0][tx]);
 		    		$display("[%g] Se envio el mensaje",$time);		
@@ -97,40 +101,29 @@ endclass
 class driver_papi #(parameter pkg_size=16, parameter depth=8, parameter drvrs=4); 
 	virtual bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size)) vif;	
 	driver_hijo #(.drvrs(drvrs),.pkg_size(pkg_size),.depth(depth)) dhijo[drvrs-1:0];
-	trans_bushandler_mbx agnt_drv_mbx; // Mailbox del agente al driver de tipo trans_bus
-
+	trans_bushandler_mbx agente_driver_mbx; // Mailbox del agente al driver de tipo trans_bus
+    trans_bushandler_mbx drvr_dhijo_mbx;
 	int espera;
+//POR QUE CREO LOS HUJOS IGUAL A LOS DRVRS PERO NO SE INICIAN LOS HPS????
 
-	function new;
+function new;
     		for (int i=0;i<drvrs; i++)begin
-      			automatic int mihijo=i;
-      			fork
-				dhijo[mihijo]=new();
-			join_none
+			dhijo[i] = new();
+              $display("Creando/construyendo hijo numero=%d",i); 
     		end
   	endfunction
 
 task run();
 	$display("[%g] El driver fue inicializado",$time);
-	forever begin
-	#1
-	//@(posedge vif.clk)
-	    for (int i=0; i<drvrs; i++)begin
-      	    automatic int mihijo=i;
-	    	dhijo[mihijo].vif = vif;
-	    	//dson[k].destino = transaction.destino;
-	    	//dson[k].tx = transaction.tx;
-	    	//dson[k].dato = transaction.D_push;
-	    	//dson[k].retardo = transaction.retardo;
-		    dhijo[mihijo].drvr_dhijo_mbx = agnt_drv_mbx;
-		    dhijo[mihijo].tx = mihijo;
-            dhijo[mihijo].run();	
-    	end		
+	for (int i=0; i<drvrs; i++)begin
+		fork
+      	    		automatic int mihijo=i;
+		    	begin
+		            dhijo[mihijo].run();
+                 $display("Ejecutando chikilin numero=%d",mihijo);    
+    			end		
+		join_none
 	end
-	//if(vif.push[0][transaction.tx]==1)begin	
-	//espera = transaction.destino;
-	//$display("[%g] D_push = %b push = %b",$time,vif.D_push[0][espera],vif.push[0][espera]);		
-	//$display("Espera: %g",espera);
-	//end
+
 endtask
 endclass 
