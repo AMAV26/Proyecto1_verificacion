@@ -15,7 +15,7 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
         max_retardo=20;
     endfunction
 
-    constraint numero_aleatorio_const {numero_aleatorio>0; numero_aleatorio<6;} 
+    constraint numero_aleatorio_const {numero_aleatorio>1; numero_aleatorio<7;} 
 task  mailboxes_put();
     #1
        this.agente_driver_mbx.put(this.transaccion_driver); 
@@ -58,7 +58,6 @@ endtask */ //Originalmente esta tarea haria los broadcast manualmente, no es nec
 
 
 task InitandRun;   
- 
     int trans_realizadas=0;
     int trans_restantes;
     $display("Inicializando agente en [%g], pkg_size %g y drvrs %g", $time, this.pkg_size, this.drvrs);
@@ -66,9 +65,18 @@ task InitandRun;
     #1
     //$display ("Pruebas a realizar %g", num_transacciones);
     trans_restantes=test_agente_mbx.num(); //Obteniendo numero de cosas en el mailbox
-    while(trans_restantes>0) begin 
+    while (trans_restantes==0) begin
         
-        $display("Instruccion recibida en [%g]", $time);
+        #1    
+        trans_restantes=test_agente_mbx.num();
+        if (trans_restantes==0) begin
+            $display("Sin transacciones en el agente %g", $time);
+    end    
+    end
+    while(trans_restantes>0) begin 
+        $display(trans_restantes); 
+        $display("Transacciones Restantes %g", trans_restantes);
+        $display("Instruccion tomada del mailbox en [%g]", $time);
         test_agente_mbx.get(tipo_instruccion);
         case(tipo_instruccion)
             llenado_aleatorio: begin
@@ -113,7 +121,6 @@ task InitandRun;
                     transaccion_driver.drvrs=drvrs;
                     transaccion_driver.randomize();
                     transaccion_driver.update_D_push;
-                    transaccion_driver.tipo=push;
                     transaccion_driver.print();
                     mailboxes_put();
                    
@@ -130,7 +137,6 @@ task InitandRun;
                 transaccion_driver.drvrs=drvrs;
 
                 transaccion_driver.randomize();
-                transaccion_driver.tipo=push;
                 transaccion_driver.dispositivo_rx=transaccion_driver.broadcast;
                 transaccion_driver.update_D_push;
                 transaccion_driver.print();
@@ -208,21 +214,21 @@ task InitandRun;
                     transaccion_driver.print();
                     mailboxes_put();
                 end
-                end
-                
+            end 
             
             
         endcase
+        trans_restantes=test_agente_mbx.num();
 
-        
     end
 end
+
 endtask
 
 endclass                
 
-
-/*module tb;
+/*
+module tb;
     comando_test_agente_mbx test_agente_mb;
     trans_sb_mbx test_scoreboard_mb;
     trans_bushandler_mbx agente_driver_mb;
@@ -232,13 +238,11 @@ endclass
     initial begin
         
         test_agente_mb=new();  
-        test_agente_trans_mb=new();     
         test_scoreboard_mb=new();
         agente_driver_mb=new();
         agente_tb=new();
          
         test_agente_mb.put(tipo_instruccion);
-        agente_tb.test_agente_trans_mbx=test_agente_trans_mb;
 
         agente_tb.test_agente_mbx= test_agente_mb;
         agente_tb.agente_scoreboard_mbx = test_scoreboard_mb;
@@ -249,7 +253,6 @@ endclass
         transaccion_test_agente.randomize();
         transaccion_test_agente.dato=14;
         transaccion_test_agente.update_D_push();
-        test_agente_trans_mb.put(transaccion_test_agente);
         
         agente_tb.InitandRun();
         $display("###################################Desplegando Mailbox de Scoreboard################################");
