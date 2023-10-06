@@ -2,7 +2,7 @@
 //`include "transacciones_interface.sv"
 class agente #(parameter pkg_size = 16, parameter drvrs=4);
     trans_bushandler_mbx test_agente_trans_mbx; 
-    trans_sb_mbx agente_scoreboard_mbx;
+    trans_sb_mbx agente_checker_mbx;
     trans_bushandler_mbx agente_driver_mbx;
     comando_test_agente_mbx test_agente_mbx ; 
     int max_retardo;
@@ -10,7 +10,8 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     rand int numero_aleatorio;
     instrucciones_agente tipo_instruccion; 
     trans_bushandler #(.pkg_size(pkg_size)) transaccion_driver;
-    trans_sb #(.pkg_size(pkg_size), .drvrs(drvrs)) trans_agente_sb;
+    trans_sb #(.pkg_size(pkg_size), .drvrs(drvrs)) trans_agente_checker;
+    string linea_csv, d_enviado,s_tx,s_rx,s_tp;
     function new;
         max_retardo=20;
     endfunction
@@ -19,18 +20,37 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
 task  mailboxes_put();
     #1
        this.agente_driver_mbx.put(this.transaccion_driver); 
-       this.trans_agente_sb=new;  
-       this.trans_agente_sb.dato_enviado=transaccion_driver.dato;
-       this.trans_agente_sb.tiempo_push=$time;
-       this.trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
-       this.trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-       this.agente_scoreboard_mbx.put(trans_agente_sb);
-
+       this.trans_agente_checker=new;  
+       this.trans_agente_checker.dato_enviado=transaccion_driver.D_push;
+       this.trans_agente_checker.tiempo_push=$time;
+       this.trans_agente_checker.drvr_rx=transaccion_driver.dispositivo_rx;
+       this.trans_agente_checker.drvr_tx=transaccion_driver.dispositivo_tx;
+       this.trans_agente_checker.tipo_transaccion=transaccion_driver.tipo;
+       if (this.transaccion_driver.dispositivo_rx==this.transaccion_driver.broadcast) begin
+            this.broadcast_do();
+       end
+        else begin
+            d_enviado.hextoa(this.transaccion_driver.D_push);
+            s_rx.hextoa(this.transaccion_driver.dispositivo_rx);
+            s_tx.hextoa(this.transaccion_driver.dispositivo_tx);
+            s_tp.hextoa(this.transaccion_driver.tipo);
+            linea_csv= {d_enviado,",",s_tx,",",s_rx,",",s_tp};
+            $system($sformatf("echo %0s >> agente.csv", linea_csv));
+            this.agente_checker_mbx.put(trans_agente_checker);
+        end 
         
+
+
+
+
+
+
+
+                      
         
 endtask
 
-/*task broadcast_do();
+task broadcast_do();
     
     $display("ejecutando broadcast");
     
@@ -42,24 +62,32 @@ endtask
         $display(this.transaccion_driver); 
         $display("############################################");
         this.agente_driver_mbx.put(this.transaccion_driver);
-        this.trans_agente_sb=new;  
-        this.trans_agente_sb.dato_enviado=transaccion_driver.dato;
-        this.trans_agente_sb.tiempo_push=$time;
-        this.trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
-        this.trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-        this.agente_scoreboard_mbx.put(trans_agente_sb);
+        this.trans_agente_checker=new;  
+        this.trans_agente_checker.dato_enviado=transaccion_driver.dato;
+        this.trans_agente_checker.tiempo_push=$time;
+        this.trans_agente_checker.drvr_rx=transaccion_driver.dispositivo_rx;
+        this.trans_agente_checker.drvr_tx=transaccion_driver.dispositivo_tx;
+        this.agente_checker_mbx.put(trans_agente_checker);
+        d_enviado.hextoa(this.transaccion_driver.D_push);
+        s_rx.hextoa(this.transaccion_driver.dispositivo_rx);
+        s_tx.hextoa(this.transaccion_driver.dispositivo_tx);
+        s_tp.hextoa(this.transaccion_driver.tipo);
+        linea_csv= {d_enviado,",",s_tx,",",s_rx,",",s_tp};
+        $system($sformatf("echo %0s >> agente.csv", linea_csv));
 
              
     
-    end
+end
 
 
-endtask */ //Originalmente esta tarea haria los broadcast manualmente, no es necesario   
+endtask    
 
 
 task InitandRun;   
     int trans_realizadas=0;
     int trans_restantes;
+    
+    $system("echo dato,transmisor,receptor,tipo,t_pop,t_push > agente.csv");
     $display("Inicializando agente en [%g], pkg_size %g y drvrs %g", $time, this.pkg_size, this.drvrs);
     begin
     #1
@@ -100,12 +128,12 @@ task InitandRun;
                     
                         transaccion_driver.print(); 
                         agente_driver_mbx.put(transaccion_driver); 
-                        trans_agente_sb=new;  
-                        trans_agente_sb.dato_enviado=transaccion_driver.dato;
-                        trans_agente_sb.tiempo_push=$time;
-                        trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
-                        trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-                        agente_scoreboard_mbx.put(trans_agente_sb);
+                        trans_agente_checker=new;  
+                        trans_agente_checker.dato_enviado=transaccion_driver.dato;
+                        trans_agente_checker.tiempo_push=$time;
+                        trans_agente_checker.drvr_rx=transaccion_driver.dispositivo_rx;
+                        trans_agente_checker.drvr_tx=transaccion_driver.dispositivo_tx;
+                        agente_checker_mbx.put(trans_agente_checker);
                     end*/
                     
                     trans_realizadas++;
@@ -144,12 +172,12 @@ task InitandRun;
 
                 /*agente_driver_mbx.put(transaccion_driver); 
 
-                trans_agente_sb=new;  
-                trans_agente_sb.dato_enviado=transaccion_driver.dato;
-                trans_agente_sb.tiempo_push=$time;
-                trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
-                trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-                agente_scoreboard_mbx.put(trans_agente_sb);*/
+                trans_agente_checker=new;  
+                trans_agente_checker.dato_enviado=transaccion_driver.dato;
+                trans_agente_checker.tiempo_push=$time;
+                trans_agente_checker.drvr_rx=transaccion_driver.dispositivo_rx;
+                trans_agente_checker.drvr_tx=transaccion_driver.dispositivo_tx;
+                agente_checker_mbx.put(trans_agente_checker);*/
                 trans_realizadas++;
 
 
@@ -170,12 +198,12 @@ task InitandRun;
                 mailboxes_put();
                 /*agente_driver_mbx.put(transaccion_driver); 
 
-                trans_agente_sb=new;  
-                trans_agente_sb.dato_enviado=transaccion_driver.dato;
-                trans_agente_sb.tiempo_push=$time;
-                trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
-                trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-                agente_scoreboard_mbx.put(trans_agente_sb);*/
+                trans_agente_checker=new;  
+                trans_agente_checker.dato_enviado=transaccion_driver.dato;
+                trans_agente_checker.tiempo_push=$time;
+                trans_agente_checker.drvr_rx=transaccion_driver.dispositivo_rx;
+                trans_agente_checker.drvr_tx=transaccion_driver.dispositivo_tx;
+                agente_checker_mbx.put(trans_agente_checker);*/
                 trans_realizadas++;
 
 
@@ -190,12 +218,12 @@ task InitandRun;
                 transaccion_driver.print();
                 
                 agente_driver_mbx.put(transaccion_driver);
-                trans_agente_sb=new;
-                trans_agente_sb.dato_enviado=transaccion_driver.dato;
-                trans_agente_sb.tiempo_push=$time;
-                trans_agente_sb.drvr_rx=transaccion_driver.dispositivo_rx;
-                trans_agente_sb.drvr_tx=transaccion_driver.dispositivo_tx;
-                agente_scoreboard_mbx.put(trans_agente_sb);
+                trans_agente_checker=new;
+                trans_agente_checker.dato_enviado=transaccion_driver.dato;
+                trans_agente_checker.tiempo_push=$time;
+                trans_agente_checker.drvr_rx=transaccion_driver.dispositivo_rx;
+                trans_agente_checker.drvr_tx=transaccion_driver.dispositivo_tx;
+                agente_checker_mbx.put(trans_agente_checker);
                 trans_realizadas++;
 
                
@@ -215,7 +243,17 @@ task InitandRun;
                     mailboxes_put();
                 end
             end 
-            
+            pop_general: begin
+                    $display("Ejecutando Pops aleatorios");
+                    for  (int i=0; i<10; i++) begin
+                    transaccion_driver=new;
+                    transaccion_driver.drvrs=drvrs;
+                    transaccion_driver.randomize;
+                    transaccion_driver.tipo=pop;
+                    transaccion_driver.print();
+                    mailboxes_put();
+                    end
+                end            
             
         endcase
         trans_restantes=test_agente_mbx.num();
@@ -245,7 +283,7 @@ module tb;
         test_agente_mb.put(tipo_instruccion);
 
         agente_tb.test_agente_mbx= test_agente_mb;
-        agente_tb.agente_scoreboard_mbx = test_scoreboard_mb;
+        agente_tb.agente_checker_mbx = test_scoreboard_mb;
         agente_tb.agente_driver_mbx=agente_driver_mb;
         $display("agente_tb %g", agente_tb.pkg_size);
         transaccion_test_agente=new();
