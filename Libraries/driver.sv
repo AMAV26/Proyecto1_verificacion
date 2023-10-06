@@ -40,14 +40,14 @@ class fifo_sim #(parameter pkg_size=16, parameter depth=8);
    
 endclass
 
-class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8); //Me vole el parametro bits
-	fifo_sim #(.pkg_size(pkg_size), .depth(depth)) fifo_in;
+class driver_hijo #(parameter drvrs=4, parameter pkg_size=16); //Me vole el parametro bits
+	fifo_sim #(.pkg_size(pkg_size), .depth(drvrs)) fifo_in;
 	virtual bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size) ) vif;	
     trans_bushandler_mbx drvr_dhijo_mbx; 
 	trans_bushandler #(.pkg_size(pkg_size))transaccion;	
 	
 	int retardo_max;
-	logic [7:0]rx;//destino
+	log:ic [7:0]rx;//destino
 	int tx; //tx  ESTO PODRIA GENERAR ERROR, ver si lo cambio a 8 bits aqui, o si mas bien cambio a entero en el bushandler INTERFACE
 
 	bit [pkg_size-1:0]dato;
@@ -59,7 +59,7 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8)
 		fifo_in = new();
 		drvr_dhijo_mbx = new();
 		transaccion = new();
-		fifo_in.pndng = 0;		
+        fifo_in.pndng = 0;		
 	endfunction
 
 	task run();
@@ -72,8 +72,7 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8)
 			    $display("[%g] Driver: Cantidad de mensajes a enviar %g",$time,drvr_dhijo_mbx.num());
 			    drvr_dhijo_mbx.get(transaccion);
 			    $display(":):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):):)");
-			    $display("[%g] Driver_hijo: Dispositivo %g listo para enviar",$time,tx);
-		
+			    $display("[%g] Driver_hijo: Dispositivo %g listo para enviar",$time,tx);		
 	    		vif.pndng[0][tx] <= 0;
     
 	    		vif.reset    <= 1;
@@ -88,7 +87,6 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8)
 			    	retardo++;
 		    	end
 				
-	
 			    fifo_in.lectura(transaccion.D_pop);
 		    	vif.d_pop[0][tx] <= fifo_in.D_pop;//eso esta ok?
 		    	vif.pndng[0][tx] <= fifo_in.pndng;
@@ -98,32 +96,48 @@ class driver_hijo #(parameter drvrs=4, parameter pkg_size=16, parameter depth=8)
 		end		
 	endtask
 endclass
-class driver_papi #(parameter pkg_size=16, parameter depth=8, parameter drvrs=4); 
+class driver_papi #(parameter pkg_size=16, parameter drvrs=4); 
 	virtual bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size)) vif;	
-	driver_hijo #(.drvrs(drvrs),.pkg_size(pkg_size),.depth(depth)) dhijo[drvrs-1:0];
+	driver_hijo #(.drvrs(drvrs),.pkg_size(pkg_size)) dhijo[drvrs-1:0];
 	trans_bushandler_mbx agente_driver_mbx; // Mailbox del agente al driver de tipo trans_bus
     trans_bushandler_mbx drvr_dhijo_mbx;
-	int espera;
+    trans_bushandler #(.pkg_size(pkg_size))transaccion;
+
+    int espera;
 //POR QUE CREO LOS HUJOS IGUAL A LOS DRVRS PERO NO SE INICIAN LOS HPS????
 
 function new;
     		for (int i=0;i<drvrs; i++)begin
 			dhijo[i] = new();
-              $display("Creando/construyendo hijo numero=%d",i); 
+            dhijo[i].vif = vif;
+            $display("Creando/construyendo hijo numero=%d",i); 
     		end
   	endfunction
 
 task run();
 	$display("[%g] El driver fue inicializado",$time);
-	for (int i=0; i<drvrs; i++)begin
+	$display("Cantidad de mensajes=%g", agente_driver_mbx.num());
+    transaccion = new();
+    drvr_dhijo_mbx =new();
+    vif
+    //  forever begin
+    fork 
+        if (agente_driver_mbx.num()!=0) begin
+            agente_driver_mbx.get(transaccion);
+            drvr_dhijo_mbx.put(transaccion);
+       end
+   join_none    
+    for (int i=0; i<drvrs; i++)begin
 		fork
       	    		automatic int mihijo=i;
 		    	begin
+                    dhijo[mihijo].drvr_dhijo_mbx = agente_driver_mbx;
+		            dhijo[mihijo].tx = mihijo;
 		            dhijo[mihijo].run();
                  $display("Ejecutando chikilin numero=%d",mihijo);    
     			end		
 		join_none
 	end
-
+    //end
 endtask
 endclass 

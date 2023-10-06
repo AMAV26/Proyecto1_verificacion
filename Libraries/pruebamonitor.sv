@@ -3,6 +3,7 @@
 `include "driver.sv"
 `include "Library.sv"
 `include "agente.sv"
+`include "monitor.sv"
 
 
 module bushandler_tb;
@@ -11,7 +12,7 @@ comando_test_agente_mbx test_agente_mb;
  trans_sb_mbx test_scoreboard_mb;
  trans_bushandler_mbx agente_driver_mb;
  trans_bushandler_mbx dhijo_mbx;
- //creando tipo de instruccion
+//creando tipo de instruccion
 instrucciones_agente tipo_instruccion=llenado_aleatorio;
 //creando/instanciando driver 
 reg reset_tb,clk_tb;
@@ -23,11 +24,11 @@ wire [15:0] D_push_tb [0:0][3:0];
 parameter drvrs = 4;
 parameter pkg_size = 16;
 parameter depth = 16;
-    reg clk_tb;
+
   driver_papi#(.drvrs(drvrs),.pkg_size(pkg_size)) drivertb;
   bushandler_if #(.drvrs(drvrs), .pkg_size(pkg_size)) vif(.clk(clk_tb));
  
-  
+//DUT instanciado  
   bs_gnrtr_n_rbtr DUT_0 (.clk(clk_tb),
                          .reset(reset_tb),
                          .pndng(vif.pndng),
@@ -38,16 +39,14 @@ parameter depth = 16;
                         );
 
   agente #(pkg_size,drvrs) agente_tb;
-         instrucciones_agente tipo_instruccion = llenado_aleatorio;
+    //     instrucciones_agente tipo_instruccion = llenado_aleatorio;
 initial begin
-        clk_tb=0;
          test_agente_mb=new();
          test_scoreboard_mb=new();
          agente_driver_mb=new();
          agente_tb=new();
          drivertb=new();
 
-         drivertb.vif = vif;
  //poniendo mbx en el agente
          test_agente_mb.put(tipo_instruccion);
          agente_tb.test_agente_mbx= test_agente_mb;
@@ -55,7 +54,23 @@ initial begin
          agente_tb.agente_driver_mbx=agente_driver_mb;
          drivertb.agente_driver_mbx = agente_driver_mb;
          agente_tb.InitandRun();
-         drivertb.run();
-         
-    end
+
+        $display("###################################Desplegando Mailbox de Scoreboard################################");
+        while (test_scoreboard_mb.num()>0) begin
+            trans_sb transaccion;
+            test_scoreboard_mb.get(transaccion);
+            $display("Transaccion en mailbox de scoreboard");
+            transaccion.print("");
+        end
+        $display ("###########################Desplegando Mailbox del Driver######################################");
+        while (agente_driver_mb.num()>0) begin
+            trans_bushandler trans_recibida;
+            agente_driver_mb.get(trans_recibida);
+            $display("Transaccion en mailbox de driver");
+            trans_recibida.print();
+        end
+        drivertb.run();
+
+
+end 
 endmodule
