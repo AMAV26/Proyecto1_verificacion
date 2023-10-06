@@ -79,7 +79,7 @@ class trans_bushandler #(parameter pkg_size  = 16);
 
     
   
-  function void randomize_drivers();
+  function void randomize_drivers(); //Innecesario
     this.dispositivo_rx=$random % drvrs; 
     this.dispositivo_tx=$random % drvrs;
     
@@ -270,7 +270,7 @@ endclass
 /////////////////////////////////////////////////////////////////////////
 // Definición de estructura para generar comandos hacia el scoreboard //
 /////////////////////////////////////////////////////////////////////////
-typedef enum {retardo_promedio,reporte} solicitud_sb;
+typedef enum {bw_promedio,retardo_promedio,reporte} solicitud_sb;
 
 /////////////////////////////////////////////////////////////////////////
 // Definición de estructura para generar comandos hacia el agente      //

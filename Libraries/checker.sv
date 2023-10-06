@@ -14,24 +14,32 @@ class Checker #(parameter pkg_size=16, parameter drvrs=8);
     forever begin
         fork 
             agente_checker_mbx.get(trans_agente_checker);
-            monitor_checker_mbx.get(transaccion_driver);
-        join    
+            monitor_checker_mbx.get(transaccion_driver);//Tomo dos transacciones del top de los mailboxes
+        join    //Necesito las dos transacciones, asi que debo hacer un join
         $display("Checker: Se recibio el dato del DUT");
-        if(trans_agente_checker.tipo_transaccion!=pop) begin
-            if(trans_agente_checker.dato_enviado == transaccion_driver.D_push) begin
+        if(trans_agente_checker.tipo_transaccion==pop) begin// Cuando la transaccion no es pop
+            if(trans_agente_checker.dato_enviado == transaccion_driver.D_push) begin //Si el paquete es igual en ambos:
 			    $display("Checker: Transaccion recibida");
-   		        checker_scoreboard_mbx.put(trans_agente_checker);
+   		        checker_scoreboard_mbx.put(trans_agente_checker);//La envio al scoreboard
             end
 		end
         if (trans_agente_checker.tipo_transaccion==pop) begin
            if (trans_agente_checker.drvr_rx==transaccion_driver.dispositivo_rx) begin
                 $display("Pop realizado correctamente");
                 trans_agente_checker.dato_enviado=transaccion_driver.D_push;
-                checker_scoreboard_mbx.put(trans_agente_checker);
+                checker_scoreboard_mbx.put(trans_agente_checker);//Si el tipo es pop, y se hizo pop del dispositivo correcto, lo paso al scoreboard
            end
         end
-		else $display("Checker: Error en el dato");
-	end
+        if (trans_agente_checker.tipo_transaccion==reset) begin 
+            if (trans_agente_checker.tipo_transaccion==transaccion_driver.tipo) begin
+                $display("reset adecuado");
+                checker_scoreboard_mbx.put(trans_agente_checker);
+            
+            end 
+        
+        end	
+        
+        end
 endtask
 endclass	
 /*

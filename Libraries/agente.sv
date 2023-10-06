@@ -6,7 +6,7 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     trans_bushandler_mbx agente_driver_mbx;
     comando_test_agente_mbx test_agente_mbx ; 
     int max_retardo;
-    int num_transacciones;
+    rand int num_transacciones_aleatorias;
     rand int numero_aleatorio;
     instrucciones_agente tipo_instruccion; 
     trans_bushandler #(.pkg_size(pkg_size)) transaccion_driver;
@@ -17,17 +17,18 @@ class agente #(parameter pkg_size = 16, parameter drvrs=4);
     endfunction
 
     constraint numero_aleatorio_const {numero_aleatorio>1; numero_aleatorio<7;} 
+    constraint num_transacciones_aleatorias_const {num_transacciones_aleatorias>10; num_transacciones_aleatorias<30;}
 task  mailboxes_put();
     #1
-       this.agente_driver_mbx.put(this.transaccion_driver); 
+       this.agente_driver_mbx.put(this.transaccion_driver);// Pongo la transaccion en el mailbox respectivo (hacia el driver) 
        this.trans_agente_checker=new;  
-       this.trans_agente_checker.dato_enviado=transaccion_driver.D_push;
+       this.trans_agente_checker.dato_enviado=transaccion_driver.D_push;//Introduzco el paquete en la transaccion que va al checker
        this.trans_agente_checker.tiempo_push=$time;
        this.trans_agente_checker.drvr_rx=transaccion_driver.dispositivo_rx;
        this.trans_agente_checker.drvr_tx=transaccion_driver.dispositivo_tx;
-       this.trans_agente_checker.tipo_transaccion=transaccion_driver.tipo;
+       this.trans_agente_checker.tipo_transaccion=transaccion_driver.tipo;//Introduzco toda la informacion necesaria en la transaccion para el checker
        if (this.transaccion_driver.dispositivo_rx==this.transaccion_driver.broadcast) begin
-            this.broadcast_do();
+            this.broadcast_do();//En caso de que haya un broadcast corro este task
        end
         else begin
             d_enviado.hextoa(this.transaccion_driver.D_push);
@@ -35,7 +36,7 @@ task  mailboxes_put();
             s_tx.hextoa(this.transaccion_driver.dispositivo_tx);
             s_tp.hextoa(this.transaccion_driver.tipo);
             linea_csv= {d_enviado,",",s_tx,",",s_rx,",",s_tp};
-            $system($sformatf("echo %0s >> agente.csv", linea_csv));
+            $system($sformatf("echo %0s >> agente.csv", linea_csv));//Introduzco la informacion relevante al csv, esto en caso de que no haya broadcast
             this.agente_checker_mbx.put(trans_agente_checker);
         end 
         
@@ -67,11 +68,11 @@ task broadcast_do();
         this.trans_agente_checker.tiempo_push=$time;
         this.trans_agente_checker.drvr_rx=transaccion_driver.dispositivo_rx;
         this.trans_agente_checker.drvr_tx=transaccion_driver.dispositivo_tx;
-        this.agente_checker_mbx.put(trans_agente_checker);
+        this.agente_checker_mbx.put(trans_agente_checker);//Se hace lo mismo que cuando no hay broadcast, pero una vez para cada uno de los drivers
         d_enviado.hextoa(this.transaccion_driver.D_push);
         s_rx.hextoa(this.transaccion_driver.dispositivo_rx);
         s_tx.hextoa(this.transaccion_driver.dispositivo_tx);
-        s_tp.hextoa(this.transaccion_driver.tipo);
+        s_tp.hextoa(this.transaccion_driver.tipo);//Convierto los numeros a hexadecimales
         linea_csv= {d_enviado,",",s_tx,",",s_rx,",",s_tp};
         $system($sformatf("echo %0s >> agente.csv", linea_csv));
 
@@ -86,9 +87,9 @@ endtask
 task InitandRun;   
     int trans_realizadas=0;
     int trans_restantes;
-    
-    $system("echo dato,transmisor,receptor,tipo,t_pop,t_push > agente.csv");
-    $display("Inicializando agente en [%g], pkg_size %g y drvrs %g", $time, this.pkg_size, this.drvrs);
+    this.randomize();     
+    $system("echo dato,transmisor,receptor,tipo,t_pop,t_push > agente.csv");//Envio el header del csv
+    $display("Inicializando agente en [%g], pkg_size %g y drvrs %g", $time, this.pkg_size, this.drvrs);//Inicializo el agente
     begin
     #1
     //$display ("Pruebas a realizar %g", num_transacciones);
@@ -96,7 +97,7 @@ task InitandRun;
     while (trans_restantes==0) begin
         
         #1    
-        trans_restantes=test_agente_mbx.num();
+        trans_restantes=test_agente_mbx.num();//Esto es para  esperar a que llegue una transaccion
         if (trans_restantes==0) begin
             $display("Sin transacciones en el agente %g", $time);
     end    
@@ -105,22 +106,21 @@ task InitandRun;
         $display(trans_restantes); 
         $display("Transacciones Restantes %g", trans_restantes);
         $display("Instruccion tomada del mailbox en [%g]", $time);
-        test_agente_mbx.get(tipo_instruccion);
+        test_agente_mbx.get(tipo_instruccion);//Se toma la instruccion del mailbox del test
         case(tipo_instruccion)
             llenado_aleatorio: begin
-                num_transacciones=10;            
                 $display ("Llenando aleatoriamente a partir de [%g]", $time);
-                for (int i=0; i<num_transacciones; i++) begin
+                for (int i=0; i<num_transacciones_aleatorias; i++) begin
                     #1   
                     
                     transaccion_driver=new;
                     transaccion_driver.drvrs=drvrs;
                     transaccion_driver.max_retardo=30;
-                    transaccion_driver.randomize(); 
-                    transaccion_driver.tipo=push;
+                    transaccion_driver.randomize(); //Introduzco transacciones aleatorias a los mailboxes
+                    transaccion_driver.tipo=push;//Como es llenado, todas las transacciones de este for son pushes
                     transaccion_driver.update_D_push;
-                    transaccion_driver.print();
-                    mailboxes_put();
+                    transaccion_driver.print();//Imprimo la transaccion, solo por sanidad
+                    mailboxes_put();//Lo pongo en mailboxes
                    /* if (this.broadcast_check()) begin 
                         $display("Haciendo broadcast");
                         
@@ -147,7 +147,7 @@ task InitandRun;
                     $display ("Generando una transaccion aleatoria en [%g]", $time);
                     transaccion_driver=new;
                     transaccion_driver.drvrs=drvrs;
-                    transaccion_driver.randomize();
+                    transaccion_driver.randomize();//Hago una transaccion totalmente aleatoria
                     transaccion_driver.update_D_push;
                     transaccion_driver.print();
                     mailboxes_put();
@@ -165,7 +165,7 @@ task InitandRun;
                 transaccion_driver.drvrs=drvrs;
 
                 transaccion_driver.randomize();
-                transaccion_driver.dispositivo_rx=transaccion_driver.broadcast;
+                transaccion_driver.dispositivo_rx=transaccion_driver.broadcast;//Hago una transaccion aleatoria, pero con el id siendo igual a broadcast
                 transaccion_driver.update_D_push;
                 transaccion_driver.print();
                 mailboxes_put();
@@ -191,7 +191,7 @@ task InitandRun;
                 transaccion_driver.randomize();
                 transaccion_driver.broadcast=transaccion_driver.dispositivo_rx;
                 transaccion_driver.tipo=push; 
-                $display("Transaccion a entregar");
+                $display("Transaccion a entregar");//Igualo el valor de broadcast de la transaccion al de un id
                 transaccion_driver.update_D_push;
 
                 transaccion_driver.print();
@@ -231,7 +231,7 @@ task InitandRun;
             end*/ 
 
             sec_trans_aleatorias: begin
-                    $display("Generando secuencia de transacciones aleatorias");
+                    $display("Generando secuencia de transacciones aleatorias");//Este caso es igual que transaccion aleatoria, pero en multiples
                     this.randomize();
                     $display("Numero de transacciones aleatorias a realizar: %g", this.numero_aleatorio);
                     for (int i=0; i<numero_aleatorio; i++) begin
@@ -249,14 +249,14 @@ task InitandRun;
                     transaccion_driver=new;
                     transaccion_driver.drvrs=drvrs;
                     transaccion_driver.randomize;
-                    transaccion_driver.tipo=pop;
+                    transaccion_driver.tipo=pop;//Este caso es 10 pops, para asegurar que sucederan pops
                     transaccion_driver.print();
                     mailboxes_put();
                     end
                 end            
             
         endcase
-        trans_restantes=test_agente_mbx.num();
+        trans_restantes=test_agente_mbx.num();//Reviso las transacciones en caso de que haya nuevas transacciones en el mailbox
 
     end
 end

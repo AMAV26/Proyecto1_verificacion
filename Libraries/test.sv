@@ -1,14 +1,15 @@
 class test #(parameter pkg_size = 16, parameter drvrs= 4);
     comando_test_agente_mbx test_agente_mbx;
     rand int num_transacciones;
-    constraint num_transacciones_max {num_transacciones < 25; num_transacciones>1;}
+    constraint num_transacciones_max {num_transacciones < 25; num_transacciones>1;}//Constraint del numero de transacciones minimos
     parameter max_retardo=20;
     rand int casos;
-    constraint casos_const {casos<6;}
+    constraint casos_const {casos<5;}//Limito este numero a 5, para que el caso sea el adecuado
     solicitud_sb solicitud_scoreboard;
     instrucciones_agente instruccion_agente;
     trans_bushandler transaccion_test_agente;
     trans_bushandler_mbx transaccion_test_agente_mbx;
+    comando_test_sb_mbx transaccion_test_sb_mbx;
     //Implementar Ambiente
     instrucciones_agente caso;
     int primer_num;
@@ -57,9 +58,15 @@ class test #(parameter pkg_size = 16, parameter drvrs= 4);
         $display("Transacciones enviadas al driver, ejecutando pops");
         caso=pop_general;
         this.test_agente_mbx.put(caso);
-        
+        #500
+        this.solicitud_scoreboard=retardo_promedio;     
+        transaccion_test_sb_mbx.put(this.solicitud_scoreboard);
+        this.solicitud_scoreboard=bw_promedio;    
+        transaccion_test_sb_mbx.put(this.solicitud_scoreboard);
+
     endtask
 
+   
 endclass
 
  
