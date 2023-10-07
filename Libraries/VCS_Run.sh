@@ -5,3 +5,5 @@ vcs -Mupdate test_tb.sv -o salida -full66 -debug_acc+all -debug_region+cell+encr
 ./salida  
 ##cp FifoFlops.sv FifoFlops_tb.sv Quiz1
 
+echo "Diferencias entre scoreboard y agente" >> Diferencias_Scoreboard_agente.csv
+diff agente.csv scoreboard.csv >> Diferencias_Scoreboard_agente.csv
