@@ -25,6 +25,8 @@ Esto mediante un ambiente de verificación conformado de lo siguiente:
         -Scoreboard 
         
         -Checker
-   ##Como correr el proyecto:
+
+   
+   ##__Como correr el proyecto:__
    
    usar el comando disponible en [Library.sv](Libraries/VCS_Run.sh)
