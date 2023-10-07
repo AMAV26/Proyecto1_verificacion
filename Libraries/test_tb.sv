@@ -60,7 +60,7 @@ initial begin;
     agente_tb.agente_driver_mbx=agente_driver_mb;
     agente_tb.test_agente_mbx=test_agente_mb;
     checker_tb.agente_checker_mbx=agente_checker_mb;
-    checker_tb.monitor_checker_mbx=monitor_checker_mb;
+    checker_tb.monitor_checker_mbx=agente_driver_mb;
     checker_tb.checker_scoreboard_mbx=checker_scoreboard_mb;
     scoreboard_tb.checker_scoreboard_mbx=checker_scoreboard_mb;
     scoreboard_tb.tst_sb_mbx=test_scoreboard_mb;
@@ -86,11 +86,11 @@ initial begin;
     fork
         scoreboard_tb.run();
     join_none
-    fork 
-        driver_tb.run();
-    join_none   
-    fork
-       monitor_tb.run();
-   join_none 
+//    fork 
+  //      driver_tb.run();
+  //  join_none   
+  //  fork
+    //   monitor_tb.run();
+//   join_none 
 end    
 endmodule    
