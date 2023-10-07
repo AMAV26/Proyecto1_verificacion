@@ -3,7 +3,7 @@
 En este repositorio se encontrarán todas las bibliotecas para hacer la verificación funcional de un bus de datos como se puede ver en la siguiente imagen:
 
 
-![Diagrama General del DUT a verificar](Diagrams/Diagrama_General.png)
+![Diagrama General del DUT a verificar](Diagrams/Diagrama.png)
 
 
 
